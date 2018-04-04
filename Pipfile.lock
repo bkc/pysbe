@@ -117,10 +117,10 @@
         },
         "pbr": {
             "hashes": [
-                "sha256:8b9a7c3704657cb0831b3ded0a6b61377947c8235b76649bb7de4bfe2e6cfa56",
-                "sha256:cf66675e22ae91a4f20e4b8354f117d3e3d1de651513051d109cc39645fb3672"
+                "sha256:56b7a8ba7d64bf6135a9dfefb85a80d95924b3fde5ed6343a1a1d464a040dae3",
+                "sha256:de75cf1d510542c746beeff66b52241eb12c8f95f2ef846ee50ed5d72392caa4"
             ],
-            "version": "==4.0.0"
+            "version": "==4.0.1"
         },
         "pluggy": {
             "hashes": [
