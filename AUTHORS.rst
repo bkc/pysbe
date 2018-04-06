@@ -5,7 +5,7 @@ Credits
 Development Lead
 ----------------
 
-* Brad Clements <bkc@murkworks.com>
+* Brad Clements
 
 Contributors
 ------------
