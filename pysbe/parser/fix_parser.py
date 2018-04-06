@@ -1,17 +1,25 @@
-"""fix_parser.py - parse V1.0 fixprotocol sbe xml files described 
+"""fix_parser.py - parse V1.0 fixprotocol sbe xml files described
     by xsd https://github.com/FIXTradingCommunity/fix-simple-binary-encoding/blob/master/v1-0-STANDARD/resources/sbe.xsd
 """
 import xml.etree.ElementTree as etree
 
+from pysbe.schema.constants import (
+    SBE_TYPES_TYPE,
+    SBE_STRING_ENUM_MAP,
+)
+from pysbe.schema.builder import createMessageSchema
+
 SBE_NS = 'http://fixprotocol.io/2016/sbe'
+
 
 class SBESpecParser:
     """Parser for VFIX"""
     NS = {
         'sbe': SBE_NS,
     }
+
     def __init__(self):
-        self.parse_ok = False
+        pass
 
     def parseFile(self, file_or_object):
         """parse a file"""
@@ -19,16 +27,49 @@ class SBESpecParser:
         element_name = '{%s}messageSchema' % SBE_NS
         # for some reason root.find('sbe:messageSchema') returns None
         # work around that
-        first_element = root.getroot()
-        if first_element.tag != element_name:
+        messageSchema_element = root.getroot()
+        if messageSchema_element.tag != element_name:
             raise ValueError(
-                f"root element is not sbe:messageSchema, found {repr(first_element)} instead"
+                f"root element is not sbe:messageSchema,"
+                " found {repr(messageSchema_element)} instead"
             )
-        self.processSchema(first_element)
-        
+        return self.processSchema(messageSchema_element)
 
-    def processSchema(self, messageSchema):
-        """process xml elements beginning with root messageSchema"""
-        attrib = messageSchema.attrib
+    def processSchema(self, messageSchema_element):
+        """process xml elements beginning with root messageSchema_element"""
+        attrib = messageSchema_element.attrib
         print(f'found attributes {repr(attrib)}')
-        
+        version = parse_version(
+            attrib.get('version')
+        )
+        byteOrder = parse_byteOrder(
+            attrib.get('byteOrder')
+        )
+
+        messageSchema = createMessageSchema(
+            version=version,
+            byteOrder=byteOrder,
+        )
+        return messageSchema
+
+def parse_byteOrder(byteOrder):
+    """convert byteOrder to enum"""
+    if byteOrder is None or byteOrder == "":
+        return None
+
+    value = SBE_STRING_ENUM_MAP.get(byteOrder)
+    if value is None:
+        raise ValueError(
+            f'invalid byteOrder {repr(value)},'
+            'expected one of {SBE_STRING_ENUM_MAP.keys()}'
+        )
+
+    return value
+
+
+def parse_version(version):
+    """convert version to int"""
+    if version is None:
+        raise ValueError('sbe:messageSchema/@version is required')
+
+    return int(version)

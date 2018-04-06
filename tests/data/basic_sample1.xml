@@ -2,7 +2,13 @@
 <!-- from https://github.com/FIXTradingCommunity/fix-simple-binary-encoding/blob/master/v1-0-STANDARD/doc/07Examples.md -->
 <sbe:messageSchema 
     xmlns:sbe="http://fixprotocol.io/2016/sbe" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" package="Examples" id="100" description="Test dictionary" byteOrder="littleEndian" xsi:schemaLocation="http://fixprotocol.io/2016/sbe sbe.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    package="Examples" 
+    id="100"
+    version="0"
+    description="Test dictionary"
+    byteOrder="littleEndian"
+    xsi:schemaLocation="http://fixprotocol.io/2016/sbe sbe.xsd">
     <types>
         <type name="enumEncoding" primitiveType="char"/>
         <type name="idString" length="8" primitiveType="char" semanticType="String"/>
