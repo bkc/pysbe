@@ -22,10 +22,10 @@ class TestFixParser:
     def test_parse_invalid_byteorder(self):
         with pytest.raises(ValueError):
             parse_byteOrder('low')
-    
+
     def test_parse_valid_byteorder(self):
-        assert parse_byteOrder('') == None
-        assert parse_byteOrder(None) == None
+        assert parse_byteOrder('') == None  # noqa: E711
+        assert parse_byteOrder(None) == None  # noqa: E711
         assert parse_byteOrder('bigEndian') == SBE_BYTE_ORDER.BIG_ENDIAN
         assert parse_byteOrder('littleEndian') == SBE_BYTE_ORDER.LITTLE_ENDIAN
 
@@ -34,7 +34,6 @@ class TestFixParser:
             parse_version(None)
         with pytest.raises(ValueError):
             parse_version('a')
-
 
     def test_parse_invalid_xml(
         self,

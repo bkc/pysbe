@@ -65,6 +65,7 @@ class TestBuilder:
                 version=0,
                 byteOrder="hi",
             )
+
     def test_valid_byteOrder(self):
         """test valid byte order"""
         createMessageSchema(

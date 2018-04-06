@@ -2,7 +2,6 @@
 from typing import Optional
 
 from . constants import (
-    SBE_BYTE_ORDER,
     VALID_SBE_BYTE_ORDER,
 )
 

@@ -1,5 +1,6 @@
 """fix_parser.py - parse V1.0 fixprotocol sbe xml files described
-    by xsd https://github.com/FIXTradingCommunity/fix-simple-binary-encoding/blob/master/v1-0-STANDARD/resources/sbe.xsd
+    by xsd https://github.com/FIXTradingCommunity/
+    fix-simple-binary-encoding/blob/master/v1-0-STANDARD/resources/sbe.xsd
 """
 import xml.etree.ElementTree as etree
 
@@ -51,6 +52,7 @@ class SBESpecParser:
             byteOrder=byteOrder,
         )
         return messageSchema
+
 
 def parse_byteOrder(byteOrder):
     """convert byteOrder to enum"""
