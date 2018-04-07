@@ -51,22 +51,23 @@ BYTE_ORDER, STRING_ENUM_MAP = make_enum_and_map(
 )
 
 VALID_BYTE_ORDER = STRING_ENUM_MAP.values()
+PRIMITIVE_TYPE_LIST = (
+    "char",
+    "int8",
+    "int16",
+    "int32",
+    "int64",
+    "uint8",
+    "uint16",
+    "uint32",
+    "uint64",
+    "float",
+    "double",
+)
 
 TYPE_PRIMITIVE_TYPE, TYPE_PRIMITIVE_TYPE_MAP = make_enum_and_map(
     'TYPE_PRIMITIVE_TYPE',
-    (
-        "char",
-        "int8",
-        "int16",
-        "int32",
-        "int64",
-        "uint8",
-        "uint16",
-        "uint32",
-        "uint64",
-        "float",
-        "double",
-    )
+    PRIMITIVE_TYPE_LIST,
 )
 
 VALID_TYPE_PRIMITIVE_TYPE = TYPE_PRIMITIVE_TYPE_MAP.keys()

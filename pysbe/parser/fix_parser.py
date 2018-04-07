@@ -14,7 +14,7 @@ from pysbe.schema.constants import (
     SYMBOLIC_NAME_RE,
 )
 from pysbe.schema.builder import createMessageSchema
-from pysbe.schema.types import createType
+from pysbe.schema.types import createType, createComposite, createEnum, createValidValue, TypeCollection
 
 SBE_NS = 'http://fixprotocol.io/2016/sbe'
 
@@ -98,16 +98,52 @@ TYPE_ATTRIBUTES = {
     },
 }
 
+ENUM_ATTRIBUTES = {
+    'encodingType': {
+        'type': str,
+        'pattern': SYMBOLIC_NAME_RE,
+    },
+}
+
 ALL_ATTRIBUTES_MAP = {
     **SEMANTIC_ATTRIBUTES,
     **VERSION_ATTRIBUTES,
     **ALIGNMENT_ATTRIBUTES,
     **PRESENCE_ATTRIBUTES,
     **TYPE_ATTRIBUTES,
+    **ENUM_ATTRIBUTES,
 }
 
-TYPE_ATTRIBUTES_LIST = list(ALL_ATTRIBUTES_MAP) + list(TYPE_ATTRIBUTES)
+TYPE_ATTRIBUTES_LIST = list(SEMANTIC_ATTRIBUTES) + \
+    list(VERSION_ATTRIBUTES) + \
+    list(ALIGNMENT_ATTRIBUTES) + \
+    list(PRESENCE_ATTRIBUTES) + \
+    list(TYPE_ATTRIBUTES)
 
+COMPOSITE_ATTRIBUTES_LIST = ['name'] + \
+list(SEMANTIC_ATTRIBUTES) + \
+list(ALIGNMENT_ATTRIBUTES) + \
+list(VERSION_ATTRIBUTES)
+
+ENUM_ATTRIBUTES_LIST = ['name'] + \
+    list(ENUM_ATTRIBUTES) + \
+    list(ALIGNMENT_ATTRIBUTES) + \
+    list(SEMANTIC_ATTRIBUTES) + \
+    list(VERSION_ATTRIBUTES)
+
+ENUM_VALID_VALUES_ATTRIBUTES_LIST = [
+    'name',
+    'description',
+    'sinceVersion',
+    'deprecated',
+]
+
+VALID_COMPOSITE_CHILD_ELEMENTS = (
+    'type',
+    'enum',
+    'set',
+    'composite',
+)
 MISSING = object()
 
 class SBESpecParser:
@@ -143,7 +179,6 @@ class SBESpecParser:
     def processSchema(self, messageSchema_element):
         """process xml elements beginning with root messageSchema_element"""
         attrib = messageSchema_element.attrib
-        print(f'found attributes {repr(attrib)}')
         version = parse_version(
             attrib.get('version')
         )
@@ -176,11 +211,11 @@ class SBESpecParser:
         )
 
         for element in types_elements:
-            self.parse_types(element)
+            self.parse_types(messageSchema, element)
 
         return messageSchema
 
-    def parse_types(self, element):
+    def parse_types(self, messageSchema, element):
         """parse type, can be repeated"""
         for child_element in element:
             if child_element.tag not in self.VALID_TYPES_ELEMENTS:
@@ -198,33 +233,79 @@ class SBESpecParser:
                     f'unsupported types parser {repr(child_element.tag)}'
                 )
 
-            parser(child_element)
+            parser(messageSchema, child_element)
 
-    def parse_types_type(self, element):
+    def parse_types_type(self, parent: TypeCollection, element):
         """parse types/type"""
-        attrib = element.attrib
-        name = attrib.get('name')
-        if not name:
-            raise ValueError(
-                "type element missing required 'name' attribute"
-            )
-        primitiveType = attrib.get('primitiveType')
-        if not primitiveType:
-            raise ValueError(
-                f"type element missing required 'primitiveType' attribute"
-            )
-        if primitiveType not in VALID_TYPE_PRIMITIVE_TYPE:
-            raise ValueError(
-                f"type element has invalid primitiveType {repr(primitiveType)}"
-                f"expected one of {VALID_TYPE_PRIMITIVE_TYPE}"
-            )
-
         attributes = self.parse_common_attributes(
             element,
             attributes=TYPE_ATTRIBUTES_LIST,
         )
 
         sbe_type = createType(**attributes)
+        parent.addType(sbe_type)
+
+
+    def parse_types_composite(self, parent: TypeCollection, element):
+        """parse types/composite"""
+        attributes = self.parse_common_attributes(
+            element,
+            attributes=COMPOSITE_ATTRIBUTES_LIST,
+        )
+
+        sbe_composite = createComposite(**attributes)
+        parent.addType(sbe_composite)
+
+        # now iterate over composite children
+        for child_element in element:
+            tag = child_element.tag
+            if tag not in VALID_COMPOSITE_CHILD_ELEMENTS:
+                raise ValueError(
+                    f'invalid child element {repr(tag)} in composite element {repr(sbe_composite.name)}'
+                )
+
+            parser = getattr(
+                self,
+                f'parse_types_{tag}',
+                None,
+            )
+            if not parser:
+                raise RuntimeError(
+                    f'unsupported types parser {repr(child_element.tag)}'
+                )
+
+        parser(sbe_composite, child_element)
+
+    def parse_types_enum(self, parent: TypeCollection, element):
+        """parse types/enum"""
+        attributes = self.parse_common_attributes(
+            element,
+            attributes=ENUM_ATTRIBUTES_LIST,
+        )
+
+        sbe_enum = createEnum(**attributes)
+        parent.addType(sbe_enum)
+        for child_element in element.findall('validValue'):
+            valid_value = self.parse_enum_valid_value(
+                sbe_enum=sbe_enum,
+                element=child_element,
+            )
+            sbe_enum.addValidValue(valid_value)
+
+    def parse_enum_valid_value(self, sbe_enum, element):
+        """parse and return an enum validvalue"""
+        attributes = self.parse_common_attributes(
+            element,
+            attributes=ENUM_VALID_VALUES_ATTRIBUTES_LIST,
+        )
+        value = element.text
+        enum_valid_value = createValidValue(
+            value=value,
+            **attributes
+        )
+        return enum_valid_value
+
+
 
     def parse_common_attributes(
             self,

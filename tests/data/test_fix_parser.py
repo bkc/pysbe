@@ -17,6 +17,8 @@ from pysbe.schema.builder import (
     MessageSchema
 )
 
+from pysbe.schema.exceptions import DuplicateName
+
 
 class TestFixParser:
 
@@ -86,11 +88,25 @@ class TestFixParser:
                 )
             )
 
+    def test_parse_invalid_types3(
+        self,
+        test_data_dir,
+        filename='invalid_types_sample3.xml'
+    ):
+        """check duplicate name registration in messageSchema"""
+        sbe = SBESpecParser()
+        with pytest.raises(DuplicateName):
+            sbe.parseFile(
+                os.path.join(
+                    test_data_dir,
+                    filename,
+                )
+            )
 
     def test_parse_xml(
         self,
         test_data_dir,
-        filename='basic_sample1.xml'
+        filename='nested_sample1.xml'
     ):
         """parse this xml file"""
         sbe = SBESpecParser()
@@ -102,3 +118,5 @@ class TestFixParser:
         )
 
         assert isinstance(messageSchema, MessageSchema)
+        import pprint
+        pprint.pprint(messageSchema.as_dict())

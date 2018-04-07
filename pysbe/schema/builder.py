@@ -1,13 +1,17 @@
 """builder.py - construct schema object"""
-from typing import Optional
+from typing import Optional, Union
 
 from . constants import (
     VALID_BYTE_ORDER,
+    PRIMITIVE_TYPE_LIST,
+    PRESENCE,
 )
 
-from . types import Type
+from . types import createType, Type, Composite, Enum, TypeCollection
+from . exceptions import DuplicateName
 
-class MessageSchema:
+
+class MessageSchema(TypeCollection):
     """describes an SBE messageSchema"""
 
     def __init__(
@@ -20,6 +24,7 @@ class MessageSchema:
         byteOrder: Optional[str]=None,
         headerType: Optional[str]=None,
     ) -> None:
+        super().__init__()
         if not isinstance(version, int) or version < 0:
             raise ValueError("version must be a positive integer")
         if package and not isinstance(package, str):
@@ -49,11 +54,31 @@ class MessageSchema:
         self.byteOrder = byteOrder
         self.headerType = headerType
 
-        self.typesNameMap = {}
+        self.addPrimitiveTypes()
 
-    def addType(self, sbeType):
-        """add a new type"""
-        pass
+    def addPrimitiveTypes(self) -> None:
+        """add default list of primitive types"""
+        for typeName in PRIMITIVE_TYPE_LIST:
+            newType = createType(
+                name=typeName,
+                primitiveType=typeName,
+                presence=PRESENCE.OPTIONAL
+            )
+
+            self.addType(newType)
+
+    def __repr__(self):
+        from pprint import pformat
+        return f"{self.__class__.__name__}\n{pformat(vars(self), indent=4, width=1)}"
+
+    def as_dict(self):
+        """for debugging, return dict represenation"""
+        d = self.__dict__.copy()
+        d['typesNameMap'] = {
+            key: value.as_dict()
+            for key, value in self.typesNameMap.items()
+        }
+        return d
 
 def createMessageSchema(
         version: int,
