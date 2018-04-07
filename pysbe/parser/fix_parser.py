@@ -46,11 +46,33 @@ class SBESpecParser:
         byteOrder = parse_byteOrder(
             attrib.get('byteOrder')
         )
-
+        package = parse_optionalString(
+            attrib.get('package')
+        )
+        semanticVersion = parse_optionalString(
+            attrib.get('semanticVersion')
+        )
+        description = parse_optionalString(
+            attrib.get('description')
+        )
+        headerType = parse_optionalString(
+            attrib.get('headerType')
+        )
         messageSchema = createMessageSchema(
             version=version,
             byteOrder=byteOrder,
+            package=package,
+            semanticVersion=semanticVersion,
+            description=description,
+            headerType=headerType,
         )
+
+        types_element = messageSchema_element.findall(
+            'sbe:types',
+            namespaces=self.NS,
+        )
+
+        print(f'types {repr(types_element)}\n')
         return messageSchema
 
 
@@ -75,3 +97,11 @@ def parse_version(version):
         raise ValueError('sbe:messageSchema/@version is required')
 
     return int(version)
+
+
+def parse_optionalString(value):
+    """parse an optional string"""
+    if not value:
+        return None
+    
+    return value

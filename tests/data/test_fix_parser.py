@@ -6,6 +6,7 @@ from pysbe.parser.fix_parser import (
     SBESpecParser,
     parse_byteOrder,
     parse_version,
+    parse_optionalString,
 )
 
 from pysbe.schema.constants import (
@@ -28,6 +29,11 @@ class TestFixParser:
         assert parse_byteOrder(None) == None  # noqa: E711
         assert parse_byteOrder('bigEndian') == SBE_BYTE_ORDER.BIG_ENDIAN
         assert parse_byteOrder('littleEndian') == SBE_BYTE_ORDER.LITTLE_ENDIAN
+
+    def test_parse_opt_string(self):
+        assert parse_optionalString('ok') == 'ok'
+        assert parse_optionalString('') == None  # noqa: E711
+        assert parse_optionalString(None) == None  # noqa: E711
 
     def test_parse_version(self):
         with pytest.raises(ValueError):
