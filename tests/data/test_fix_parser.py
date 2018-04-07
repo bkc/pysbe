@@ -10,7 +10,7 @@ from pysbe.parser.fix_parser import (
 )
 
 from pysbe.schema.constants import (
-    SBE_BYTE_ORDER
+    BYTE_ORDER
 )
 
 from pysbe.schema.builder import (
@@ -27,8 +27,8 @@ class TestFixParser:
     def test_parse_valid_byteorder(self):
         assert parse_byteOrder('') == None  # noqa: E711
         assert parse_byteOrder(None) == None  # noqa: E711
-        assert parse_byteOrder('bigEndian') == SBE_BYTE_ORDER.BIG_ENDIAN
-        assert parse_byteOrder('littleEndian') == SBE_BYTE_ORDER.LITTLE_ENDIAN
+        assert parse_byteOrder('bigEndian') == BYTE_ORDER.BIG_ENDIAN
+        assert parse_byteOrder('littleEndian') == BYTE_ORDER.LITTLE_ENDIAN
 
     def test_parse_opt_string(self):
         assert parse_optionalString('ok') == 'ok'
@@ -55,6 +55,37 @@ class TestFixParser:
                     filename,
                 )
             )
+
+    def test_parse_invalid_types1(
+        self,
+        test_data_dir,
+        filename='invalid_types_sample1.xml'
+    ):
+        """parse this xml file"""
+        sbe = SBESpecParser()
+        with pytest.raises(ValueError):
+            sbe.parseFile(
+                os.path.join(
+                    test_data_dir,
+                    filename,
+                )
+            )
+
+    def test_parse_invalid_types2(
+        self,
+        test_data_dir,
+        filename='invalid_types_sample2.xml'
+    ):
+        """parse this xml file"""
+        sbe = SBESpecParser()
+        with pytest.raises(ValueError):
+            sbe.parseFile(
+                os.path.join(
+                    test_data_dir,
+                    filename,
+                )
+            )
+
 
     def test_parse_xml(
         self,

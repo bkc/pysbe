@@ -2,7 +2,7 @@
 import pytest
 
 from pysbe.schema.builder import createMessageSchema
-from pysbe.schema.constants import SBE_BYTE_ORDER
+from pysbe.schema.constants import BYTE_ORDER
 
 
 class TestBuilder:
@@ -70,5 +70,5 @@ class TestBuilder:
         """test valid byte order"""
         createMessageSchema(
             version=0,
-            byteOrder=SBE_BYTE_ORDER.BIG_ENDIAN
+            byteOrder=BYTE_ORDER.BIG_ENDIAN
         )

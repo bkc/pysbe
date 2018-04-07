@@ -2,9 +2,10 @@
 from typing import Optional
 
 from . constants import (
-    VALID_SBE_BYTE_ORDER,
+    VALID_BYTE_ORDER,
 )
 
+from . types import Type
 
 class MessageSchema:
     """describes an SBE messageSchema"""
@@ -34,9 +35,9 @@ class MessageSchema:
             raise ValueError("semanticVersion must be None or a string")
         if description and not isinstance(description, str):
             raise ValueError("description must be None or a string")
-        if byteOrder and byteOrder not in VALID_SBE_BYTE_ORDER:
+        if byteOrder and byteOrder not in VALID_BYTE_ORDER:
             raise ValueError(
-                "byteOrder must be None or one of %r" % VALID_SBE_BYTE_ORDER
+                "byteOrder must be None or one of %r" % VALID_BYTE_ORDER
             )
         if headerType and not isinstance(headerType, str):
             raise ValueError("headerType must be None or a string")
@@ -48,6 +49,11 @@ class MessageSchema:
         self.byteOrder = byteOrder
         self.headerType = headerType
 
+        self.typesNameMap = {}
+
+    def addType(self, sbeType):
+        """add a new type"""
+        pass
 
 def createMessageSchema(
         version: int,
