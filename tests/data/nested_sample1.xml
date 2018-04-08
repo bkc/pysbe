@@ -46,6 +46,12 @@
                 <type name="mantissa" primitiveType="int32"/>
                 <type name="exponent" presence="constant" primitiveType="int8">0</type>
             </composite>
+            <ref name="composite_ref1" type="qtyEncoding" />        
+            <set name="OptionalExtras" encodingType="uint8">
+                <choice name="sunRoof">0</choice>
+                <choice name="sportsPack">1</choice>
+                <choice name="cruiseControl">2</choice>
+            </set>            
         </composite>
     </types>
     <sbe:message name="NewOrderSingle" id="99" blockLength="54" semanticType="D">

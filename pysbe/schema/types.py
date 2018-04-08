@@ -2,7 +2,7 @@
 import weakref
 from typing import Optional, Union
 from . constants import PRESENCE, TYPE_PRIMITIVE_TYPE
-from . exceptions import DuplicateName
+from . exceptions import DuplicateName, DuplicateChoiceValue
 
 class TypeCollection:
     """Holds map of types"""
@@ -193,6 +193,146 @@ def createComposite(
     )
 
     return composite
+
+
+class Ref(BaseType):
+    """A Ref Type"""
+
+    def __init__(
+        self,
+        name: [str],
+        type: [str],
+        offset: Optional[int]=None,
+        sinceVersion: Optional[int]=0,
+        deprecated: Optional[int]=None,
+    ) -> None:
+        """initialize Ref type"""
+        self.name = name
+        self.offset = offset
+        self.sinceVersion = sinceVersion
+        self.deprecated = deprecated
+        self.type = type
+
+
+def createRef(
+        name: [str],
+        type: [str],
+        offset: Optional[int]=None,
+        sinceVersion: Optional[int]=0,
+        deprecated: Optional[int]=None,
+) -> Ref:
+    """create a new Type"""
+    sbeRef = Ref(
+        name=name,
+        offset=offset,
+        sinceVersion=sinceVersion,
+        deprecated=deprecated,
+        type=type,
+    )
+
+    return sbeRef
+
+
+class Set(BaseType):
+    """A Set Type"""
+
+    def __init__(
+        self,
+        name: [str],
+        description: Optional[str]=None,
+        encodingType: Optional[str]=None,
+        offset: Optional[int]=None,
+        sinceVersion: Optional[int]=0,
+        deprecated: Optional[int]=None,
+    ) -> None:
+        """initialize Set type"""
+        self.name = name
+        self.offset = offset
+        self.sinceVersion = sinceVersion
+        self.deprecated = deprecated
+        self.description = description
+        self.encodingType = encodingType
+
+        self.choice_name_map = {}
+        self.choice_list = []
+        self.choice_values = []
+
+    def addChoice(self, choice: 'Choice') -> None:
+        """add a choice to this Set"""
+        if choice.name in self.choice_name_map:
+            raise DuplicateName(
+                f'duplicate Choice name {repr(choice.name)} already'
+                f'defined in set {repr(self.name)}'
+            )
+
+        self.choice_name_map[choice.name] = choice
+        self.choice_list.append(choice)
+        if choice.value in self.choice_values:
+            raise DuplicateChoiceValue(
+                f"set {self.name} choice name {choice.name}"
+                f"value {repr(choice.value)} duplicates existing value"
+            )
+        self.choice_values.append(choice.value)
+
+
+def createSet(
+        name: [str],
+        description: Optional[str]=None,
+        encodingType: Optional[str]=None,
+        offset: Optional[int]=None,
+        sinceVersion: Optional[int]=0,
+        deprecated: Optional[int]=None,
+) -> Set:
+    """create a new Set"""
+    sbeSet = Set(
+        name=name,
+        encodingType=encodingType,
+        description=description,
+        offset=offset,
+        sinceVersion=sinceVersion,
+        deprecated=deprecated,
+    )
+
+    return sbeSet
+
+
+class Choice(BaseType):
+    """A Choice for a Set"""
+
+    def __init__(
+        self,
+        name: [str],
+        value: [int],
+        description: Optional[str]=None,
+        sinceVersion: Optional[int]=0,
+        deprecated: Optional[int]=None,
+    ) -> None:
+        """initialize Choice type"""
+        self.name = name
+        self.description = description
+        self.sinceVersion = sinceVersion
+        self.deprecated = deprecated
+        self.value = value
+        self.bitmap = 1 << value
+
+
+def createChoice(
+        name: [str],
+        value: [str],
+        description: Optional[str]=None,
+        sinceVersion: Optional[int]=0,
+        deprecated: Optional[int]=None,
+) -> Choice:
+    """create a new ValidValue"""
+    choice = Choice(
+        name=name,
+        description=description,
+        sinceVersion=sinceVersion,
+        deprecated=deprecated,
+        value=value,
+    )
+
+    return choice
 
 
 class Enum(BaseType, TypeCollection):

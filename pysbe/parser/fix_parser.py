@@ -14,7 +14,17 @@ from pysbe.schema.constants import (
     SYMBOLIC_NAME_RE,
 )
 from pysbe.schema.builder import createMessageSchema
-from pysbe.schema.types import createType, createComposite, createEnum, createValidValue, TypeCollection
+from pysbe.schema.types import (
+    createType,
+    createComposite,
+    createEnum,
+    createValidValue,
+    TypeCollection,
+    createRef,
+    createSet,
+    createChoice,
+)
+from pysbe.schema.exceptions import UnknownReference
 
 SBE_NS = 'http://fixprotocol.io/2016/sbe'
 
@@ -105,6 +115,12 @@ ENUM_ATTRIBUTES = {
     },
 }
 
+REF_ATTRIBUTES = {
+    'type': {
+        'type': str,        
+    }
+}
+
 ALL_ATTRIBUTES_MAP = {
     **SEMANTIC_ATTRIBUTES,
     **VERSION_ATTRIBUTES,
@@ -112,6 +128,7 @@ ALL_ATTRIBUTES_MAP = {
     **PRESENCE_ATTRIBUTES,
     **TYPE_ATTRIBUTES,
     **ENUM_ATTRIBUTES,
+    **REF_ATTRIBUTES,
 }
 
 TYPE_ATTRIBUTES_LIST = list(SEMANTIC_ATTRIBUTES) + \
@@ -131,19 +148,45 @@ ENUM_ATTRIBUTES_LIST = ['name'] + \
     list(SEMANTIC_ATTRIBUTES) + \
     list(VERSION_ATTRIBUTES)
 
-ENUM_VALID_VALUES_ATTRIBUTES_LIST = [
+ENUM_VALID_VALUES_ATTRIBUTES_LIST = (
     'name',
     'description',
     'sinceVersion',
     'deprecated',
-]
+)
+
+REF_ATTRIBUTES_LIST = (
+    'name',
+    'type',
+    'offset',
+    'sinceVersion',
+    'deprecated',
+)
+
+SET_ATTRIBUTES_LIST = (
+    'name',
+    'description',
+    'encodingType',
+    'sinceVersion',
+    'deprecated',
+    'offset',
+)
+
+SET_CHOICE_ATTRIBUTES_LIST = (
+    'name',
+    'description',
+    'sinceVersion',
+    'deprecated',
+)
 
 VALID_COMPOSITE_CHILD_ELEMENTS = (
     'type',
     'enum',
     'set',
     'composite',
+    'ref',
 )
+
 MISSING = object()
 
 class SBESpecParser:
@@ -245,6 +288,23 @@ class SBESpecParser:
         sbe_type = createType(**attributes)
         parent.addType(sbe_type)
 
+    def parse_types_ref(self, parent: TypeCollection, element):
+        """parse composite / ref"""
+        attributes = self.parse_common_attributes(
+            element,
+            attributes=REF_ATTRIBUTES_LIST,
+        )
+
+        sbe_ref = createRef(**attributes)
+        reference_type = parent.lookupName(
+            sbe_ref.type
+        )
+        if not reference_type:
+            raise UnknownReference(
+                f"composite {parent.name} ref {sbe_ref.name} references unknown encodingType {sbe_ref.type}"
+            )
+        parent.addType(sbe_ref)
+
 
     def parse_types_composite(self, parent: TypeCollection, element):
         """parse types/composite"""
@@ -275,6 +335,41 @@ class SBESpecParser:
                 )
 
             parser(sbe_composite, child_element)
+
+    def parse_types_set(self, parent: TypeCollection, element):
+        """parse types/set"""
+        attributes = self.parse_common_attributes(
+            element,
+            attributes=SET_ATTRIBUTES_LIST,
+        )
+
+        sbe_set = createSet(**attributes)
+        parent.addType(sbe_set)
+        for child_element in element.findall('choice'):
+            choice = self.parse_set_choice(
+                sbe_set=sbe_set,
+                element=child_element,
+            )
+            sbe_set.addChoice(choice)
+        
+    def parse_set_choice(self, sbe_set, element):
+        """parse and return an enum validvalue"""
+        attributes = self.parse_common_attributes(
+            element,
+            attributes=SET_CHOICE_ATTRIBUTES_LIST,
+        )
+        value = element.text
+        try:
+            value = int(element.text)
+        except ValueError as exc:
+            raise ValueError(
+                f"invalid value for set {sbe_set.name} choice {attributes.get('name')}"
+            ) from exc
+        choice = createChoice(
+            value=value,
+            **attributes
+        )
+        return choice
 
     def parse_types_enum(self, parent: TypeCollection, element):
         """parse types/enum"""
