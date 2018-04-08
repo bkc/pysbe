@@ -1,4 +1,5 @@
 """types.py - schema for types type, composite, enum, etc"""
+import weakref
 from typing import Optional, Union
 from . constants import PRESENCE, TYPE_PRIMITIVE_TYPE
 from . exceptions import DuplicateName
@@ -7,6 +8,8 @@ class TypeCollection:
     """Holds map of types"""
     def __init__(self, *args, **kw):
         self.typesNameMap = {}
+        self.typesList = []
+        self.parentCollectionRef = None
 
     def addType(self,
         sbeType: Union[
@@ -19,14 +22,32 @@ class TypeCollection:
             raise DuplicateName(
                 f'{sbeType.name}'' already registered in composite {self.name}')
 
+        if isinstance(sbeType, TypeCollection):
+            sbeType.setParent(self)
+
         self.typesNameMap[sbeType.name] = sbeType
+        self.typesList.append(sbeType)
 
-class BaseType:
 
-    def __repr__(self):
-        from pprint import pformat
-        return f"{self.__class__.__name__}\n{pformat(vars(self), indent=8, width=1)}"
+    def setParent(self, parentCollection):
+        """link this type collection with a parent"""
+        self.parentCollectionRef = weakref.ref(parentCollection)
 
+    def lookupName(self, name):
+        """lookup name and return mapping or whatever"""
+        if name in self.typesNameMap:
+            return self.typesNameMap[name]
+
+        if not self.parentCollectionRef:
+            return None
+        
+        parentCollection = self.parentCollectionRef()
+        if not parentCollection:
+            return None
+
+        return parentCollection.lookupName(name)
+
+class AsDictType:
     def as_dict(self):
         """for debugging, return dict represenation"""
         d = self.__dict__.copy()
@@ -48,8 +69,12 @@ class BaseType:
                     ikey: ivalue.as_dict() if hasattr(ivalue, 'as_dict') else ivalue
                     for ikey, ivalue in value.items()
                 }
-                
+
         return d
+
+
+class BaseType(AsDictType):
+    pass
 
 
 class Type(BaseType):
@@ -170,7 +195,7 @@ def createComposite(
     return composite
 
 
-class Enum(BaseType):
+class Enum(BaseType, TypeCollection):
     """An Enum"""
 
     def __init__(
@@ -184,6 +209,7 @@ class Enum(BaseType):
         deprecated: Optional[int]=None,
     ) -> None:
         """initialize primitive type"""
+        super().__init__()
         self.name = name
         self.description = description
         self.offset = offset

@@ -274,7 +274,7 @@ class SBESpecParser:
                     f'unsupported types parser {repr(child_element.tag)}'
                 )
 
-        parser(sbe_composite, child_element)
+            parser(sbe_composite, child_element)
 
     def parse_types_enum(self, parent: TypeCollection, element):
         """parse types/enum"""

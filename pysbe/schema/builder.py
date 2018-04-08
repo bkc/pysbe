@@ -7,11 +7,11 @@ from . constants import (
     PRESENCE,
 )
 
-from . types import createType, Type, Composite, Enum, TypeCollection
+from . types import createType, Type, Composite, Enum, TypeCollection, AsDictType
 from . exceptions import DuplicateName
 
 
-class MessageSchema(TypeCollection):
+class MessageSchema(TypeCollection, AsDictType):
     """describes an SBE messageSchema"""
 
     def __init__(
@@ -67,18 +67,6 @@ class MessageSchema(TypeCollection):
 
             self.addType(newType)
 
-    def __repr__(self):
-        from pprint import pformat
-        return f"{self.__class__.__name__}\n{pformat(vars(self), indent=4, width=1)}"
-
-    def as_dict(self):
-        """for debugging, return dict represenation"""
-        d = self.__dict__.copy()
-        d['typesNameMap'] = {
-            key: value.as_dict()
-            for key, value in self.typesNameMap.items()
-        }
-        return d
 
 def createMessageSchema(
         version: int,
