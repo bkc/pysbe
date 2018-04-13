@@ -4,6 +4,7 @@ from typing import Optional, Union
 from . constants import PRESENCE, TYPE_PRIMITIVE_TYPE
 from . exceptions import DuplicateName, DuplicateChoiceValue
 
+
 class TypeCollection:
     """Holds map of types"""
     def __init__(self, *args, **kw):
@@ -11,23 +12,25 @@ class TypeCollection:
         self.typesList = []
         self.parentCollectionRef = None
 
-    def addType(self,
+    def addType(
+        self,
         sbeType: Union[
             'Type',
             'Composite',
             'Enum'
-        ]) -> None:
+        ]
+    ) -> None:
         """add a new type"""
         if sbeType.name in self.typesNameMap:
             raise DuplicateName(
-                f'{sbeType.name}'' already registered in composite {self.name}')
+                f'{sbeType.name}'' already registered in composite {self.name}'
+            )
 
         if isinstance(sbeType, TypeCollection):
             sbeType.setParent(self)
 
         self.typesNameMap[sbeType.name] = sbeType
         self.typesList.append(sbeType)
-
 
     def setParent(self, parentCollection):
         """link this type collection with a parent"""
@@ -40,12 +43,13 @@ class TypeCollection:
 
         if not self.parentCollectionRef:
             return None
-        
+
         parentCollection = self.parentCollectionRef()
         if not parentCollection:
             return None
 
         return parentCollection.lookupName(name)
+
 
 class AsDictType:
     def as_dict(self):
@@ -59,14 +63,21 @@ class AsDictType:
             }
 
         for key, value in d.items():
-            if isinstance(value, list) and len(value) and hasattr(value[0], 'as_dict'):
+            if isinstance(value, list) and \
+                len(value) and \
+                hasattr(
+                    value[0],
+                    'as_dict'):
                 d[key] = [
                     x.as_dict()
                     for x in value
                 ]
             elif isinstance(value, dict):
                 d[key] = {
-                    ikey: ivalue.as_dict() if hasattr(ivalue, 'as_dict') else ivalue
+                    ikey: ivalue.as_dict() if hasattr(
+                        ivalue,
+                        'as_dict'
+                    ) else ivalue
                     for ikey, ivalue in value.items()
                 }
 
@@ -126,11 +137,10 @@ def createType(
         length: int=1,
         offset: Optional[int]=None,
         semanticType: Optional[str]=None,
-        sinceVersion: Optional[int]=0,        
+        sinceVersion: Optional[int]=0,
         deprecated: Optional[int]=None,
         characterEncoding: Optional[str]=None,
-        valueRef: Optional[str]=None,
-    ) -> Type:
+        valueRef: Optional[str]=None) -> Type:
     """create a new Type"""
     sbeType = Type(
         name=name,
@@ -180,8 +190,7 @@ def createComposite(
         offset: Optional[int]=None,
         semanticType: Optional[str]=None,
         sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None
-    ) -> Composite:
+        deprecated: Optional[int]=None) -> Composite:
     """create a new Type"""
     composite = Composite(
         name=name,
@@ -360,7 +369,6 @@ class Enum(BaseType, TypeCollection):
 
         self.valid_value_name_map = {}
         self.valid_value_list = []
-
 
     def addValidValue(self, validValue: 'ValidValue') -> None:
         """add a valid value element to this enum"""

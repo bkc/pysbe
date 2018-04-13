@@ -117,7 +117,7 @@ ENUM_ATTRIBUTES = {
 
 REF_ATTRIBUTES = {
     'type': {
-        'type': str,        
+        'type': str,
     }
 }
 
@@ -138,9 +138,9 @@ TYPE_ATTRIBUTES_LIST = list(SEMANTIC_ATTRIBUTES) + \
     list(TYPE_ATTRIBUTES)
 
 COMPOSITE_ATTRIBUTES_LIST = ['name'] + \
-list(SEMANTIC_ATTRIBUTES) + \
-list(ALIGNMENT_ATTRIBUTES) + \
-list(VERSION_ATTRIBUTES)
+    list(SEMANTIC_ATTRIBUTES) + \
+    list(ALIGNMENT_ATTRIBUTES) + \
+    list(VERSION_ATTRIBUTES)
 
 ENUM_ATTRIBUTES_LIST = ['name'] + \
     list(ENUM_ATTRIBUTES) + \
@@ -189,6 +189,7 @@ VALID_COMPOSITE_CHILD_ELEMENTS = (
 
 MISSING = object()
 
+
 class SBESpecParser:
     """Parser for VFIX"""
     NS = {
@@ -202,6 +203,7 @@ class SBESpecParser:
         'enum',
         'set',
     )
+
     def __init__(self):
         pass
 
@@ -301,10 +303,10 @@ class SBESpecParser:
         )
         if not reference_type:
             raise UnknownReference(
-                f"composite {parent.name} ref {sbe_ref.name} references unknown encodingType {sbe_ref.type}"
+                f"composite {parent.name} ref {sbe_ref.name}"
+                f" references unknown encodingType {sbe_ref.type}"
             )
         parent.addType(sbe_ref)
-
 
     def parse_types_composite(self, parent: TypeCollection, element):
         """parse types/composite"""
@@ -321,7 +323,8 @@ class SBESpecParser:
             tag = child_element.tag
             if tag not in VALID_COMPOSITE_CHILD_ELEMENTS:
                 raise ValueError(
-                    f'invalid child element {repr(tag)} in composite element {repr(sbe_composite.name)}'
+                    f'invalid child element {repr(tag)} in '
+                    f'composite element {repr(sbe_composite.name)}'
                 )
 
             parser = getattr(
@@ -351,7 +354,7 @@ class SBESpecParser:
                 element=child_element,
             )
             sbe_set.addChoice(choice)
-        
+
     def parse_set_choice(self, sbe_set, element):
         """parse and return an enum validvalue"""
         attributes = self.parse_common_attributes(
@@ -363,7 +366,8 @@ class SBESpecParser:
             value = int(element.text)
         except ValueError as exc:
             raise ValueError(
-                f"invalid value for set {sbe_set.name} choice {attributes.get('name')}"
+                f"invalid value for set {sbe_set.name} choice "
+                f"{attributes.get('name')}"
             ) from exc
         choice = createChoice(
             value=value,
@@ -400,8 +404,6 @@ class SBESpecParser:
         )
         return enum_valid_value
 
-
-
     def parse_common_attributes(
             self,
             element,
@@ -420,40 +422,48 @@ class SBESpecParser:
                     continue
                 else:
                     raise ValueError(
-                        f'element {element.tag} missing required attribute {attribute}'
+                        f'element {element.tag} missing required '
+                        f'attribute {attribute}'
                     )
             if attrib_info.get('type'):
                 try:
                     value = attrib_info['type'](value)
                 except ValueError as exc:
                     raise ValueError(
-                        f'element {element.tag} invalid value {repr(value)} for attribute {attribute}'
+                        f'element {element.tag} invalid value '
+                        f'{repr(value)} for attribute {attribute}'
                     ) from exc
 
             if attrib_info.get('minimumValue'):
                 if value < attrib_info['minimumValue']:
                     raise ValueError(
-                        f'element {element.tag} invalid value {repr(value)} for attribute {attribute}'
-                        f", less than allowed minimum {repr(attrib_info['minimumValue'])}"
+                        f'element {element.tag} invalid value {repr(value)}'
+                        f' for attribute {attribute},'
+                        'less than allowed minimum '
+                        f"{repr(attrib_info['minimumValue'])}"
                     )
             if attrib_info.get('pattern'):
                 if not attrib_info['pattern'].match(value):
                     raise ValueError(
-                        f'element {element.tag} invalid value {repr(value)} for attribute {attribute}'
-                        f", does not match expected pattern {repr(attrib_info['pattern'])}"
+                        f'element {element.tag} invalid value {repr(value)} '
+                        f'for attribute {attribute},'
+                        "does not match expected pattern "
+                        f"{repr(attrib_info['pattern'])}"
                     )
             if attrib_info.get('map'):
                 try:
                     value = attrib_info['map'][value]
                 except (KeyError, IndexError) as exc:
                     raise ValueError(
-                        f'element {element.tag} invalid value {repr(value)} for attribute {attribute}'
+                        f'element {element.tag} invalid value {repr(value)} '
+                        f'for attribute {attribute}'
                         f", must be one of {repr(attrib_info['map'].keys())}"
                     ) from exc
 
             result_attributes[attribute] = value
 
         return result_attributes
+
 
 def parse_byteOrder(byteOrder):
     """convert byteOrder to enum"""
@@ -482,5 +492,5 @@ def parse_optionalString(value):
     """parse an optional string"""
     if not value:
         return None
-    
+
     return value

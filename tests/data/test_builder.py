@@ -21,6 +21,10 @@ class TestBuilder:
             createMessageSchema(
                 version='1'
             )
+        with pytest.raises(ValueError):
+            createMessageSchema(
+                version='a'
+            )
 
     def test_invalid_package(self):
         """create message invalid package"""
