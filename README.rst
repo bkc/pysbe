@@ -4,7 +4,7 @@ pysbe
 
 
 .. image:: https://img.shields.io/pypi/v/pysbe.svg
-        :target: https://pypi.python.org/pypi/pysbe
+        :target: https://pypi.org/project/pysbe/
 
 .. image:: https://img.shields.io/travis/bkc/pysbe.svg
         :target: https://travis-ci.org/bkc/pysbe
