@@ -109,12 +109,13 @@ VALID_COMPOSITE_CHILD_ELEMENTS = ("type", "enum", "set", "composite", "ref")
 MISSING = object()
 
 
-class SBESpecParser:
-    """Parser for VFIX"""
+class BaseParser:
+    """contains shared functionality"""
     NS = {"sbe": SBE_NS}
 
-    # which child elements may appear in types
-    VALID_TYPES_ELEMENTS = ("type", "composite", "enum", "set")
+
+class SBESpecParser(BaseParser):
+    """Parser for VFIX"""
 
     def __init__(self):
         pass
@@ -153,11 +154,17 @@ class SBESpecParser:
         )
 
         types_elements = messageSchema_element.findall("types")
-
+        types_parser = TypesParser()
         for element in types_elements:
-            self.parse_types(messageSchema, element)
+            types_parser.parse_types(messageSchema, element)
 
         return messageSchema
+
+
+class TypesParser(BaseParser):
+    """parse type definitions"""
+    # which child elements may appear in types
+    VALID_TYPES_ELEMENTS = ("type", "composite", "enum", "set")
 
     def parse_types(self, messageSchema, element):
         """parse type, can be repeated"""
