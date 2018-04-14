@@ -3,7 +3,9 @@ from typing import Optional, Union
 
 from .constants import VALID_BYTE_ORDER, PRIMITIVE_TYPE_LIST, PRESENCE
 
-from .types import createType, Type, Composite, Enum, TypeCollection, AsDictType
+from .types import (
+    createType, Type, Composite, Enum, TypeCollection, AsDictType, Message, Field
+)
 from .exceptions import DuplicateName
 
 
@@ -21,6 +23,7 @@ class MessageSchema(TypeCollection, AsDictType):
         headerType: Optional[str] = None,
     ) -> None:
         super().__init__()
+        self.message_name_map = {}
         if not isinstance(version, int) or version < 0:
             raise ValueError("version must be a positive integer")
 
@@ -63,6 +66,13 @@ class MessageSchema(TypeCollection, AsDictType):
             )
 
             self.addType(newType)
+
+    def addMessage(self, message: Message) -> None:
+        """add message definition to schema"""
+        if message.name in self.message_name_map:
+            raise ValueError(f"message name '{message.name}' already defined'")
+
+        self.message_name_map[message.name] = message
 
 
 def createMessageSchema(

@@ -23,6 +23,8 @@ from pysbe.schema.types import (
     createRef,
     createSet,
     createChoice,
+    createMessage,
+    createField,
 )
 from pysbe.schema.exceptions import UnknownReference
 
@@ -60,6 +62,16 @@ ENUM_ATTRIBUTES = {"encodingType": {"type": str, "pattern": SYMBOLIC_NAME_RE}}
 
 REF_ATTRIBUTES = {"type": {"type": str}}
 
+MESSAGE_ATTRIBUTES = {
+    "blockLength": {"type": int, "use": "optional"},
+    "message_id": {"type": int, "attribute_name": "id"},
+}
+
+FIELD_ATTRIBUTES = {
+    "field_id": {"type": int, "attribute_name": "id"},
+    "field_type": {"type": str, "pattern": SYMBOLIC_NAME_RE, "attribute_name": "type"},
+}
+
 ALL_ATTRIBUTES_MAP = {
     **SEMANTIC_ATTRIBUTES,
     **VERSION_ATTRIBUTES,
@@ -68,6 +80,8 @@ ALL_ATTRIBUTES_MAP = {
     **TYPE_ATTRIBUTES,
     **ENUM_ATTRIBUTES,
     **REF_ATTRIBUTES,
+    **MESSAGE_ATTRIBUTES,
+    **FIELD_ATTRIBUTES,
 }
 
 TYPE_ATTRIBUTES_LIST = list(SEMANTIC_ATTRIBUTES) + list(VERSION_ATTRIBUTES) + list(
@@ -106,12 +120,99 @@ SET_CHOICE_ATTRIBUTES_LIST = ("name", "description", "sinceVersion", "deprecated
 
 VALID_COMPOSITE_CHILD_ELEMENTS = ("type", "enum", "set", "composite", "ref")
 
+
+MESSAGE_ATTRIBUTES_LIST = (
+    "name",
+    "message_id",
+    "description",
+    "blockLength",
+    "semanticType",
+    "sinceVersion",
+    "deprecated",
+)
+
+FIELD_ATTRIBUTES_LIST = (
+    "name",
+    "field_id",
+    "field_type",
+    "description",
+    "offset",
+    "presence",
+    "valueRef",
+    "sinceVersion",
+    "deprecated",
+)
 MISSING = object()
 
 
 class BaseParser:
     """contains shared functionality"""
     NS = {"sbe": SBE_NS}
+
+    def parse_common_attributes(self, element, attributes):
+        """parse and return dict of common attributes"""
+        result_attributes = {}
+        for attribute in attributes:
+            attrib_info = ALL_ATTRIBUTES_MAP[attribute]
+            if attrib_info.get("default", MISSING) is not MISSING:
+                default_value = attrib_info["default"]
+            else:
+                default_value = MISSING
+            attribute_name = attrib_info.get("attribute_name", attribute)
+            value = element.attrib.get(attribute_name, default_value)
+            if value is MISSING or value == "":
+                if attrib_info.get("use") == "optional":
+                    continue
+
+                else:
+                    raise ValueError(
+                        f"element {element.tag} missing required "
+                        f"attribute {attribute_name}"
+                    )
+
+            if attrib_info.get("type"):
+                try:
+                    value = attrib_info["type"](value)
+                except ValueError as exc:
+                    raise ValueError(
+                        f"element {element.tag} invalid value "
+                        f"{repr(value)} for attribute {attribute_name}"
+                    ) from exc
+
+            if attrib_info.get("minimumValue"):
+                if value < attrib_info["minimumValue"]:
+                    raise ValueError(
+                        f"element {element.tag} invalid value {repr(value)}"
+                        f" for attribute {attribute_name},"
+                        "less than allowed minimum "
+                        f"{repr(attrib_info['minimumValue'])}"
+                    )
+
+            if attrib_info.get("pattern"):
+                if not attrib_info["pattern"].match(value):
+                    raise ValueError(
+                        f"element {element.tag} invalid value {repr(value)} "
+                        f"for attribute {attribute_name},"
+                        "does not match expected pattern "
+                        f"{repr(attrib_info['pattern'])}"
+                    )
+
+            if attrib_info.get("map"):
+                try:
+                    value = attrib_info["map"][value]
+                except (KeyError, IndexError) as exc:
+                    raise ValueError(
+                        f"element {element.tag} invalid value {repr(value)} "
+                        f"for attribute {attribute_name}"
+                        f", must be one of {repr(attrib_info['map'].keys())}"
+                    ) from exc
+
+            if attrib_info.get("rename"):
+                attribute = attrib_info["rename"]
+
+            result_attributes[attribute] = value
+
+        return result_attributes
 
 
 class SBESpecParser(BaseParser):
@@ -157,6 +258,13 @@ class SBESpecParser(BaseParser):
         types_parser = TypesParser()
         for element in types_elements:
             types_parser.parse_types(messageSchema, element)
+
+        message_elements = messageSchema_element.findall(
+            "sbe:message", namespaces=self.NS
+        )
+        message_parser = MessageParser()
+        for element in message_elements:
+            message_parser.parse_message(messageSchema, element)
 
         return messageSchema
 
@@ -285,66 +393,44 @@ class TypesParser(BaseParser):
         enum_valid_value = createValidValue(value=value, **attributes)
         return enum_valid_value
 
-    def parse_common_attributes(self, element, attributes):
-        """parse and return dict of common attributes"""
-        result_attributes = {}
-        for attribute in attributes:
-            attrib_info = ALL_ATTRIBUTES_MAP[attribute]
-            if attrib_info.get("default", MISSING) is not MISSING:
-                default_value = attrib_info["default"]
-            else:
-                default_value = MISSING
-            value = element.attrib.get(attribute, default_value)
-            if value is MISSING or value == "":
-                if attrib_info.get("use") == "optional":
-                    continue
 
-                else:
-                    raise ValueError(
-                        f"element {element.tag} missing required "
-                        f"attribute {attribute}"
-                    )
+class MessageParser(BaseParser):
+    """parse message definitions"""
+    # which child elements may appear in message
+    VALID_MESSAGE_TYPES = ("field", "group", "data")
 
-            if attrib_info.get("type"):
-                try:
-                    value = attrib_info["type"](value)
-                except ValueError as exc:
-                    raise ValueError(
-                        f"element {element.tag} invalid value "
-                        f"{repr(value)} for attribute {attribute}"
-                    ) from exc
+    def parse_message(self, messageSchema, element):
+        """parse message, can be repeated"""
 
-            if attrib_info.get("minimumValue"):
-                if value < attrib_info["minimumValue"]:
-                    raise ValueError(
-                        f"element {element.tag} invalid value {repr(value)}"
-                        f" for attribute {attribute},"
-                        "less than allowed minimum "
-                        f"{repr(attrib_info['minimumValue'])}"
-                    )
+        attributes = self.parse_common_attributes(
+            element, attributes=MESSAGE_ATTRIBUTES_LIST
+        )
+        message = createMessage(**attributes)
+        messageSchema.addMessage(message)
 
-            if attrib_info.get("pattern"):
-                if not attrib_info["pattern"].match(value):
-                    raise ValueError(
-                        f"element {element.tag} invalid value {repr(value)} "
-                        f"for attribute {attribute},"
-                        "does not match expected pattern "
-                        f"{repr(attrib_info['pattern'])}"
-                    )
+        for child_element in element:
+            if child_element.tag not in self.VALID_MESSAGE_TYPES:
+                raise ValueError(
+                    f"invalid message child element {repr(child_element.tag)}"
+                )
 
-            if attrib_info.get("map"):
-                try:
-                    value = attrib_info["map"][value]
-                except (KeyError, IndexError) as exc:
-                    raise ValueError(
-                        f"element {element.tag} invalid value {repr(value)} "
-                        f"for attribute {attribute}"
-                        f", must be one of {repr(attrib_info['map'].keys())}"
-                    ) from exc
+            parser = getattr(self, f"parse_message_{child_element.tag}", None)
+            if not parser:
+                raise RuntimeError(
+                    f"unsupported message parser {repr(child_element.tag)}"
+                )
 
-            result_attributes[attribute] = value
+            parser(messageSchema, message, child_element)
 
-        return result_attributes
+    def parse_message_field(self, messageSchema, message, element) -> None:
+        """parse field Type"""
+        attributes = self.parse_common_attributes(
+            element, attributes=FIELD_ATTRIBUTES_LIST
+        )
+
+        field = createField(**attributes)
+        field.validate(messageSchema, message)
+        message.addField(field)
 
 
 def parse_byteOrder(byteOrder):

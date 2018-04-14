@@ -13,7 +13,9 @@ class TypeCollection:
         self.typesList = []
         self.parentCollectionRef = None
 
-    def addType(self, sbeType: Union["Type", "Composite", "Enum", "Ref", "Set"]) -> None:
+    def addType(
+        self, sbeType: Union["Type", "Composite", "Enum", "Ref", "Set"]
+    ) -> None:
         """add a new type"""
         if sbeType.name in self.typesNameMap:
             raise DuplicateName(
@@ -56,6 +58,10 @@ class AsDictType:
                 key: value.as_dict() for key, value in d["typesNameMap"].items()
             }
 
+        if "fieldNameMap" in d:
+            d["fieldNameMap"] = {
+                key: value.as_dict() for key, value in d["fieldNameMap"].items()
+            }
         for key, value in d.items():
             if isinstance(value, list) and len(value) and hasattr(value[0], "as_dict"):
                 d[key] = [x.as_dict() for x in value]
@@ -429,3 +435,127 @@ def createValidValue(
     )
 
     return valid_value
+
+
+class Message(AsDictType):
+    """A message"""
+
+    def __init__(
+        self,
+        name: [str],
+        message_id: int,
+        blockLength: Optional[int] = None,
+        description: Optional[str] = None,
+        semanticType: Optional[str] = None,
+        sinceVersion: Optional[int] = 0,
+        deprecated: Optional[int] = None,
+    ) -> None:
+        """create a new Message"""
+        self.fieldNameMap = {}
+        self.fieldList = []
+
+        self.name = name
+        self.message_id = message_id
+        self.blockLength = blockLength
+        self.description = description
+        self.semanticType = semanticType
+        self.sinceVersion = sinceVersion
+        self.deprecated = deprecated
+
+    def addField(self, field: "Field") -> None:
+        """add a new type"""
+        if field.name in self.fieldNameMap:
+            raise DuplicateName(
+                f"{field.name} already registered in message {self.name}"
+            )
+
+        self.fieldNameMap[field.name] = field
+        self.fieldList.append(field)
+
+
+def createMessage(
+    name: [str],
+    message_id: int,
+    blockLength: Optional[int] = None,
+    description: Optional[str] = None,
+    semanticType: Optional[str] = None,
+    sinceVersion: Optional[int] = 0,
+    deprecated: Optional[int] = None,
+) -> Message:
+    """create a new message"""
+    message = Message(
+        name=name,
+        message_id=message_id,
+        blockLength=blockLength,
+        description=description,
+        semanticType=semanticType,
+        sinceVersion=sinceVersion,
+        deprecated=deprecated,
+    )
+    return message
+
+
+class Field(AsDictType):
+    """field specification"""
+
+    def __init__(
+        self,
+        name: [str],
+        field_id: [int],
+        field_type: [str],
+        description: [str] = None,
+        offset: Optional[int] = None,
+        presence: Optional[PRESENCE] = PRESENCE.REQUIRED,
+        sinceVersion: Optional[int] = 0,
+        deprecated: Optional[int] = None,
+        valueRef: Optional[str] = None,
+    ) -> None:
+        """create a field"""
+        self.name = name
+        self.field_id = field_id
+        self.field_type = field_type
+        self.description = description
+        self.offset = offset
+        self.presence = presence
+        self.sinceVersion = sinceVersion
+        self.deprecated = deprecated
+        self.valueRef = valueRef
+
+    def validate(self, messageSchema: "MessageSchema", message: Message) -> None:
+        """validate field attributes"""
+        # check type
+        resolved_type = messageSchema.lookupName(
+            self.field_type
+        )
+        if not resolved_type:
+            raise ValueError(
+                f"field '{self.name}' type '{self.field_type}' could not be resolved, undefined type"
+            )
+        return
+
+
+def createField(
+    name: [str],
+    field_id: [int],
+    field_type: [str],
+    description: [str] = None,
+    offset: Optional[int] = None,
+    presence: Optional[PRESENCE] = PRESENCE.REQUIRED,
+    sinceVersion: Optional[int] = 0,
+    deprecated: Optional[int] = None,
+    valueRef: Optional[str] = None,
+):
+    """create a field"""
+    field = Field(
+        name=name,
+        field_id=field_id,
+        field_type=field_type,
+        description=description,
+        offset=offset,
+        presence=presence,
+        sinceVersion=sinceVersion,
+        deprecated=deprecated,
+        valueRef=valueRef,
+    )
+
+    return field

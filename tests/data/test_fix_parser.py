@@ -75,3 +75,13 @@ class TestFixParser:
         import pprint
 
         pprint.pprint(messageSchema.as_dict())
+
+    def test_parse_xml2(self, test_data_dir, filename="fix-message-samples.xml"):
+        """parse this xml file"""
+        sbe = SBESpecParser()
+        messageSchema = sbe.parseFile(os.path.join(test_data_dir, filename))
+
+        assert isinstance(messageSchema, MessageSchema)
+        import pprint
+
+        pprint.pprint(messageSchema.as_dict())
