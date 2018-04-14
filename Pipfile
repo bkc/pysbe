@@ -13,6 +13,7 @@ pylint = "*"
 "pep8" = "*"
 "autopep8" = "*"
 rope = "*"
+twine = "*"
 
 [packages]
 "e1839a8" = {path = ".", editable = true}
