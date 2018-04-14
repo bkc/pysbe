@@ -18,6 +18,9 @@ pysbe
      :target: https://pyup.io/repos/github/bkc/pysbe/
      :alt: Updates
 
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+     :target: https://github.com/ambv/black
+     :alt: COding Style: black
 
 
 Python implementation of Simple Binary Encoding V1.0
