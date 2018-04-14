@@ -47,6 +47,24 @@ class TypeCollection:
         return parentCollection.lookupName(name)
 
 
+class FieldCollection:
+    """Holds list of fields"""
+
+    def __init__(self, *args, **kw):
+        self.fieldsNameMap = {}
+        self.fieldsList = []
+
+    def addField(self, field: Union["Field", "Group"]) -> None:
+        """add a new type"""
+        if field.name in self.fieldsNameMap:
+            raise DuplicateName(
+                f"{field.name} already registered in message/group {self.name}"
+            )
+
+        self.fieldsNameMap[field.name] = field
+        self.fieldsList.append(field)
+
+
 class AsDictType:
 
     def as_dict(self):
@@ -437,7 +455,7 @@ def createValidValue(
     return valid_value
 
 
-class Message(AsDictType):
+class Message(AsDictType, FieldCollection):
     """A message"""
 
     def __init__(
@@ -451,9 +469,7 @@ class Message(AsDictType):
         deprecated: Optional[int] = None,
     ) -> None:
         """create a new Message"""
-        self.fieldNameMap = {}
-        self.fieldList = []
-
+        super().__init__()
         self.name = name
         self.message_id = message_id
         self.blockLength = blockLength
@@ -461,16 +477,6 @@ class Message(AsDictType):
         self.semanticType = semanticType
         self.sinceVersion = sinceVersion
         self.deprecated = deprecated
-
-    def addField(self, field: "Field") -> None:
-        """add a new type"""
-        if field.name in self.fieldNameMap:
-            raise DuplicateName(
-                f"{field.name} already registered in message {self.name}"
-            )
-
-        self.fieldNameMap[field.name] = field
-        self.fieldList.append(field)
 
 
 def createMessage(
@@ -521,16 +527,15 @@ class Field(AsDictType):
         self.deprecated = deprecated
         self.valueRef = valueRef
 
-    def validate(self, messageSchema: "MessageSchema", message: Message) -> None:
+    def validate(self, messageSchema: "MessageSchema") -> None:
         """validate field attributes"""
         # check type
-        resolved_type = messageSchema.lookupName(
-            self.field_type
-        )
+        resolved_type = messageSchema.lookupName(self.field_type)
         if not resolved_type:
             raise ValueError(
                 f"field '{self.name}' type '{self.field_type}' could not be resolved, undefined type"
             )
+
         return
 
 
@@ -559,3 +564,65 @@ def createField(
     )
 
     return field
+
+
+class Group(FieldCollection, AsDictType):
+    """collection of fields in a group"""
+
+    def __init__(
+        self,
+        name: [str],
+        group_id: int,
+        blockLength: Optional[int] = None,
+        description: Optional[str] = None,
+        semanticType: Optional[str] = None,
+        sinceVersion: Optional[int] = 0,
+        deprecated: Optional[int] = None,
+        dimensionType: Optional[str] = None,
+    ) -> None:
+        """create a new Message"""
+        super().__init__()
+        self.name = name
+        self.group_id = group_id
+        self.blockLength = blockLength
+        self.description = description
+        self.semanticType = semanticType
+        self.sinceVersion = sinceVersion
+        self.deprecated = deprecated
+        self.dimensionType = dimensionType
+
+    def validate(self, messageSchema: "MessageSchema") -> None:
+        """validate group attributes"""
+        # check type
+        dimensionType = self.dimensionType or "groupSizeEncoding"
+        resolved_dimensionType = messageSchema.lookupName(dimensionType)
+        if not resolved_dimensionType:
+            raise ValueError(
+                f"group '{self.name}' dimensionType '{dimensionType}' could not be resolved, undefined type"
+            )
+
+        return
+
+
+def createGroup(
+    name: [str],
+    group_id: int,
+    blockLength: Optional[int] = None,
+    description: Optional[str] = None,
+    semanticType: Optional[str] = None,
+    sinceVersion: Optional[int] = 0,
+    deprecated: Optional[int] = None,
+    dimensionType: Optional[str] = None,
+) -> Group:
+    """create a new Group"""
+    group = Group(
+        name=name,
+        group_id=group_id,
+        blockLength=blockLength,
+        description=description,
+        semanticType=semanticType,
+        sinceVersion=sinceVersion,
+        deprecated=deprecated,
+        dimensionType=dimensionType,
+    )
+    return group

@@ -25,6 +25,8 @@ from pysbe.schema.types import (
     createChoice,
     createMessage,
     createField,
+    FieldCollection,
+    createGroup,
 )
 from pysbe.schema.exceptions import UnknownReference
 
@@ -72,6 +74,11 @@ FIELD_ATTRIBUTES = {
     "field_type": {"type": str, "pattern": SYMBOLIC_NAME_RE, "attribute_name": "type"},
 }
 
+GROUP_ATTRIBUTES = {
+    "group_id": {"type": int, "attribute_name": "id"},
+    "dimensionType": {"type": str, "pattern": SYMBOLIC_NAME_RE, "use": "optional"},
+}
+
 ALL_ATTRIBUTES_MAP = {
     **SEMANTIC_ATTRIBUTES,
     **VERSION_ATTRIBUTES,
@@ -82,6 +89,7 @@ ALL_ATTRIBUTES_MAP = {
     **REF_ATTRIBUTES,
     **MESSAGE_ATTRIBUTES,
     **FIELD_ATTRIBUTES,
+    **GROUP_ATTRIBUTES,
 }
 
 TYPE_ATTRIBUTES_LIST = list(SEMANTIC_ATTRIBUTES) + list(VERSION_ATTRIBUTES) + list(
@@ -142,6 +150,18 @@ FIELD_ATTRIBUTES_LIST = (
     "sinceVersion",
     "deprecated",
 )
+
+GROUP_ATTRIBUTES_LIST = (
+    "name",
+    "group_id",
+    "description",
+    "blockLength",
+    "semanticType",
+    "sinceVersion",
+    "deprecated",
+    "dimensionType",
+)
+
 MISSING = object()
 
 
@@ -407,11 +427,14 @@ class MessageParser(BaseParser):
         )
         message = createMessage(**attributes)
         messageSchema.addMessage(message)
+        self.parse_field_children(messageSchema, message, element)
 
+    def parse_field_children(self, messageSchema, parent: FieldCollection, element):
+        """parse child elements that fit in a fieldCollection"""
         for child_element in element:
             if child_element.tag not in self.VALID_MESSAGE_TYPES:
                 raise ValueError(
-                    f"invalid message child element {repr(child_element.tag)}"
+                    f"invalid message/group child element {repr(child_element.tag)}"
                 )
 
             parser = getattr(self, f"parse_message_{child_element.tag}", None)
@@ -420,17 +443,33 @@ class MessageParser(BaseParser):
                     f"unsupported message parser {repr(child_element.tag)}"
                 )
 
-            parser(messageSchema, message, child_element)
+            parser(messageSchema, parent, child_element)
 
-    def parse_message_field(self, messageSchema, message, element) -> None:
+    def parse_message_field(
+        self, messageSchema, parent: FieldCollection, element
+    ) -> None:
         """parse field Type"""
         attributes = self.parse_common_attributes(
             element, attributes=FIELD_ATTRIBUTES_LIST
         )
 
         field = createField(**attributes)
-        field.validate(messageSchema, message)
-        message.addField(field)
+        field.validate(messageSchema)
+        parent.addField(field)
+
+    def parse_message_group(
+        self, messageSchema, parent: FieldCollection, element
+    ) -> None:
+        """parse field Type"""
+        attributes = self.parse_common_attributes(
+            element, attributes=GROUP_ATTRIBUTES_LIST
+        )
+
+        group = createGroup(**attributes)
+        group.validate(messageSchema)
+        parent.addField(group)
+
+        self.parse_field_children(messageSchema, group, element)
 
 
 def parse_byteOrder(byteOrder):
