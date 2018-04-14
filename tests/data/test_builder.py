@@ -10,69 +10,37 @@ class TestBuilder:
     def test_invalid_version(self):
         """create message w/ invalid version"""
         with pytest.raises(ValueError):
-            createMessageSchema(
-                version=None
-            )
+            createMessageSchema(version=None)
         with pytest.raises(ValueError):
-            createMessageSchema(
-                version=-1
-            )
+            createMessageSchema(version=-1)
         with pytest.raises(ValueError):
-            createMessageSchema(
-                version='1'
-            )
+            createMessageSchema(version="1")
         with pytest.raises(ValueError):
-            createMessageSchema(
-                version='a'
-            )
+            createMessageSchema(version="a")
 
     def test_invalid_package(self):
         """create message invalid package"""
         with pytest.raises(ValueError):
-            createMessageSchema(
-                version=0,
-                package=1,
-            )
+            createMessageSchema(version=0, package=1)
         with pytest.raises(ValueError):
-            createMessageSchema(
-                version=0,
-                package=1.0,
-            )
+            createMessageSchema(version=0, package=1.0)
 
     def test_invalid_schema_id(self):
         """create message invalid schema_id"""
         with pytest.raises(ValueError):
-            createMessageSchema(
-                version=0,
-                schema_id="invalid",
-            )
+            createMessageSchema(version=0, schema_id="invalid")
         with pytest.raises(ValueError):
-            createMessageSchema(
-                version=0,
-                schema_id=1.0,
-            )
+            createMessageSchema(version=0, schema_id=1.0)
         with pytest.raises(ValueError):
-            createMessageSchema(
-                version=0,
-                schema_id=-1,
-            )
+            createMessageSchema(version=0, schema_id=-1)
         with pytest.raises(ValueError):
-            createMessageSchema(
-                version=0,
-                schema_id=1000000,
-            )
+            createMessageSchema(version=0, schema_id=1000000)
 
     def test_invalid_byteOrder(self):
         """create message invalid schema_id"""
         with pytest.raises(ValueError):
-            createMessageSchema(
-                version=0,
-                byteOrder="hi",
-            )
+            createMessageSchema(version=0, byteOrder="hi")
 
     def test_valid_byteOrder(self):
         """test valid byte order"""
-        createMessageSchema(
-            version=0,
-            byteOrder=BYTE_ORDER.BIG_ENDIAN
-        )
+        createMessageSchema(version=0, byteOrder=BYTE_ORDER.BIG_ENDIAN)

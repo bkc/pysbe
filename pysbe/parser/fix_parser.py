@@ -26,100 +26,39 @@ from pysbe.schema.types import (
 )
 from pysbe.schema.exceptions import UnknownReference
 
-SBE_NS = 'http://fixprotocol.io/2016/sbe'
+SBE_NS = "http://fixprotocol.io/2016/sbe"
 
 SEMANTIC_ATTRIBUTES = {
-    'semanticType': {
-        'type': str,
-        'use': 'optional',
-    },
-    'description': {
-        'type': str,
-        'use': 'optional',
-    },
+    "semanticType": {"type": str, "use": "optional"},
+    "description": {"type": str, "use": "optional"},
 }
 
 VERSION_ATTRIBUTES = {
-    'sinceVersion': {
-        'type': int,
-        'default': 0,
-        'minimumValue': 0,
-        'use': 'optional',
-    },
+    "sinceVersion": {"type": int, "default": 0, "minimumValue": 0, "use": "optional"},
     # deprecated is itself deprecated in RC4
-    'deprecated': {
-        'type': int,
-        'minimumValue': 0,
-        'use': 'optional',
-    },
+    "deprecated": {"type": int, "minimumValue": 0, "use": "optional"},
 }
 
-ALIGNMENT_ATTRIBUTES = {
-    'offset': {
-        'type': int,
-        'minimumValue': 0,
-        'use': 'optional',
-    },
-}
+ALIGNMENT_ATTRIBUTES = {"offset": {"type": int, "minimumValue": 0, "use": "optional"}}
 
 PRESENCE_ATTRIBUTES = {
-    'presence': {
-        'type': str,
-        'default': 'required',
-        'map': PRESENCE_MAP,
-    },
-    'valueRef': {
-        'type': str,
-        'use': 'optional',
-        'pattern': QUALIFIED_NAME_RE,
-    },
+    "presence": {"type": str, "default": "required", "map": PRESENCE_MAP},
+    "valueRef": {"type": str, "use": "optional", "pattern": QUALIFIED_NAME_RE},
 }
 
 TYPE_ATTRIBUTES = {
-    'name': {
-        'type': str,
-        'pattern': SYMBOLIC_NAME_RE,
-    },
-    'primitiveType': {
-        'type': str,
-        'map': TYPE_PRIMITIVE_TYPE_MAP,
-    },
-    'nullValue': {
-        'type': str,
-        'use': 'optional',
-    },
-    'minValue': {
-        'type': str,
-        'use': 'optional',
-    },
-    'maxValue': {
-        'type': str,
-        'use': 'optional',
-    },
-    'characterEncoding': {
-        'type': str,
-        'use': 'optional',
-    },
-    'length': {
-        'type': int,
-        'minimumValue': 0,
-        'use': 'optional',
-        'default': 1,
-    },
+    "name": {"type": str, "pattern": SYMBOLIC_NAME_RE},
+    "primitiveType": {"type": str, "map": TYPE_PRIMITIVE_TYPE_MAP},
+    "nullValue": {"type": str, "use": "optional"},
+    "minValue": {"type": str, "use": "optional"},
+    "maxValue": {"type": str, "use": "optional"},
+    "characterEncoding": {"type": str, "use": "optional"},
+    "length": {"type": int, "minimumValue": 0, "use": "optional", "default": 1},
 }
 
-ENUM_ATTRIBUTES = {
-    'encodingType': {
-        'type': str,
-        'pattern': SYMBOLIC_NAME_RE,
-    },
-}
+ENUM_ATTRIBUTES = {"encodingType": {"type": str, "pattern": SYMBOLIC_NAME_RE}}
 
-REF_ATTRIBUTES = {
-    'type': {
-        'type': str,
-    }
-}
+REF_ATTRIBUTES = {"type": {"type": str}}
 
 ALL_ATTRIBUTES_MAP = {
     **SEMANTIC_ATTRIBUTES,
@@ -131,78 +70,51 @@ ALL_ATTRIBUTES_MAP = {
     **REF_ATTRIBUTES,
 }
 
-TYPE_ATTRIBUTES_LIST = list(SEMANTIC_ATTRIBUTES) + \
-    list(VERSION_ATTRIBUTES) + \
-    list(ALIGNMENT_ATTRIBUTES) + \
-    list(PRESENCE_ATTRIBUTES) + \
-    list(TYPE_ATTRIBUTES)
+TYPE_ATTRIBUTES_LIST = list(SEMANTIC_ATTRIBUTES) + list(VERSION_ATTRIBUTES) + list(
+    ALIGNMENT_ATTRIBUTES
+) + list(
+    PRESENCE_ATTRIBUTES
+) + list(
+    TYPE_ATTRIBUTES
+)
 
-COMPOSITE_ATTRIBUTES_LIST = ['name'] + \
-    list(SEMANTIC_ATTRIBUTES) + \
-    list(ALIGNMENT_ATTRIBUTES) + \
-    list(VERSION_ATTRIBUTES)
+COMPOSITE_ATTRIBUTES_LIST = ["name"] + list(SEMANTIC_ATTRIBUTES) + list(
+    ALIGNMENT_ATTRIBUTES
+) + list(
+    VERSION_ATTRIBUTES
+)
 
-ENUM_ATTRIBUTES_LIST = ['name'] + \
-    list(ENUM_ATTRIBUTES) + \
-    list(ALIGNMENT_ATTRIBUTES) + \
-    list(SEMANTIC_ATTRIBUTES) + \
-    list(VERSION_ATTRIBUTES)
+ENUM_ATTRIBUTES_LIST = ["name"] + list(ENUM_ATTRIBUTES) + list(
+    ALIGNMENT_ATTRIBUTES
+) + list(
+    SEMANTIC_ATTRIBUTES
+) + list(
+    VERSION_ATTRIBUTES
+)
 
 ENUM_VALID_VALUES_ATTRIBUTES_LIST = (
-    'name',
-    'description',
-    'sinceVersion',
-    'deprecated',
+    "name", "description", "sinceVersion", "deprecated"
 )
 
-REF_ATTRIBUTES_LIST = (
-    'name',
-    'type',
-    'offset',
-    'sinceVersion',
-    'deprecated',
-)
+REF_ATTRIBUTES_LIST = ("name", "type", "offset", "sinceVersion", "deprecated")
 
 SET_ATTRIBUTES_LIST = (
-    'name',
-    'description',
-    'encodingType',
-    'sinceVersion',
-    'deprecated',
-    'offset',
+    "name", "description", "encodingType", "sinceVersion", "deprecated", "offset"
 )
 
-SET_CHOICE_ATTRIBUTES_LIST = (
-    'name',
-    'description',
-    'sinceVersion',
-    'deprecated',
-)
+SET_CHOICE_ATTRIBUTES_LIST = ("name", "description", "sinceVersion", "deprecated")
 
-VALID_COMPOSITE_CHILD_ELEMENTS = (
-    'type',
-    'enum',
-    'set',
-    'composite',
-    'ref',
-)
+VALID_COMPOSITE_CHILD_ELEMENTS = ("type", "enum", "set", "composite", "ref")
 
 MISSING = object()
 
 
 class SBESpecParser:
     """Parser for VFIX"""
-    NS = {
-        'sbe': SBE_NS,
-    }
+    NS = {"sbe": SBE_NS}
 
     # which child elements may appear in types
-    VALID_TYPES_ELEMENTS = (
-        'type',
-        'composite',
-        'enum',
-        'set',
-    )
+    VALID_TYPES_ELEMENTS = ("type", "composite", "enum", "set")
 
     def __init__(self):
         pass
@@ -210,7 +122,7 @@ class SBESpecParser:
     def parseFile(self, file_or_object):
         """parse a file"""
         root = etree.parse(file_or_object)
-        element_name = '{%s}messageSchema' % SBE_NS
+        element_name = "{%s}messageSchema" % SBE_NS
         # for some reason root.find('sbe:messageSchema') returns None
         # work around that
         messageSchema_element = root.getroot()
@@ -219,29 +131,18 @@ class SBESpecParser:
                 f"root element is not sbe:messageSchema,"
                 " found {repr(messageSchema_element)} instead"
             )
+
         return self.processSchema(messageSchema_element)
 
     def processSchema(self, messageSchema_element):
         """process xml elements beginning with root messageSchema_element"""
         attrib = messageSchema_element.attrib
-        version = parse_version(
-            attrib.get('version')
-        )
-        byteOrder = parse_byteOrder(
-            attrib.get('byteOrder') or 'littleEndian'
-        )
-        package = parse_optionalString(
-            attrib.get('package')
-        )
-        semanticVersion = parse_optionalString(
-            attrib.get('semanticVersion')
-        )
-        description = parse_optionalString(
-            attrib.get('description')
-        )
-        headerType = parse_optionalString(
-            attrib.get('headerType') or 'messageHeader'
-        )
+        version = parse_version(attrib.get("version"))
+        byteOrder = parse_byteOrder(attrib.get("byteOrder") or "littleEndian")
+        package = parse_optionalString(attrib.get("package"))
+        semanticVersion = parse_optionalString(attrib.get("semanticVersion"))
+        description = parse_optionalString(attrib.get("description"))
+        headerType = parse_optionalString(attrib.get("headerType") or "messageHeader")
         messageSchema = createMessageSchema(
             version=version,
             byteOrder=byteOrder,
@@ -251,9 +152,7 @@ class SBESpecParser:
             headerType=headerType,
         )
 
-        types_elements = messageSchema_element.findall(
-            'types',
-        )
+        types_elements = messageSchema_element.findall("types")
 
         for element in types_elements:
             self.parse_types(messageSchema, element)
@@ -265,17 +164,13 @@ class SBESpecParser:
         for child_element in element:
             if child_element.tag not in self.VALID_TYPES_ELEMENTS:
                 raise ValueError(
-                    f'invalid types child element {repr(child_element.tag)}'
+                    f"invalid types child element {repr(child_element.tag)}"
                 )
 
-            parser = getattr(
-                self,
-                f'parse_types_{child_element.tag}',
-                None,
-            )
+            parser = getattr(self, f"parse_types_{child_element.tag}", None)
             if not parser:
                 raise RuntimeError(
-                    f'unsupported types parser {repr(child_element.tag)}'
+                    f"unsupported types parser {repr(child_element.tag)}"
                 )
 
             parser(messageSchema, child_element)
@@ -283,8 +178,7 @@ class SBESpecParser:
     def parse_types_type(self, parent: TypeCollection, element):
         """parse types/type"""
         attributes = self.parse_common_attributes(
-            element,
-            attributes=TYPE_ATTRIBUTES_LIST,
+            element, attributes=TYPE_ATTRIBUTES_LIST
         )
 
         sbe_type = createType(**attributes)
@@ -293,26 +187,23 @@ class SBESpecParser:
     def parse_types_ref(self, parent: TypeCollection, element):
         """parse composite / ref"""
         attributes = self.parse_common_attributes(
-            element,
-            attributes=REF_ATTRIBUTES_LIST,
+            element, attributes=REF_ATTRIBUTES_LIST
         )
 
         sbe_ref = createRef(**attributes)
-        reference_type = parent.lookupName(
-            sbe_ref.type
-        )
+        reference_type = parent.lookupName(sbe_ref.type)
         if not reference_type:
             raise UnknownReference(
                 f"composite {parent.name} ref {sbe_ref.name}"
                 f" references unknown encodingType {sbe_ref.type}"
             )
+
         parent.addType(sbe_ref)
 
     def parse_types_composite(self, parent: TypeCollection, element):
         """parse types/composite"""
         attributes = self.parse_common_attributes(
-            element,
-            attributes=COMPOSITE_ATTRIBUTES_LIST,
+            element, attributes=COMPOSITE_ATTRIBUTES_LIST
         )
 
         sbe_composite = createComposite(**attributes)
@@ -323,18 +214,14 @@ class SBESpecParser:
             tag = child_element.tag
             if tag not in VALID_COMPOSITE_CHILD_ELEMENTS:
                 raise ValueError(
-                    f'invalid child element {repr(tag)} in '
-                    f'composite element {repr(sbe_composite.name)}'
+                    f"invalid child element {repr(tag)} in "
+                    f"composite element {repr(sbe_composite.name)}"
                 )
 
-            parser = getattr(
-                self,
-                f'parse_types_{tag}',
-                None,
-            )
+            parser = getattr(self, f"parse_types_{tag}", None)
             if not parser:
                 raise RuntimeError(
-                    f'unsupported types parser {repr(child_element.tag)}'
+                    f"unsupported types parser {repr(child_element.tag)}"
                 )
 
             parser(sbe_composite, child_element)
@@ -342,24 +229,19 @@ class SBESpecParser:
     def parse_types_set(self, parent: TypeCollection, element):
         """parse types/set"""
         attributes = self.parse_common_attributes(
-            element,
-            attributes=SET_ATTRIBUTES_LIST,
+            element, attributes=SET_ATTRIBUTES_LIST
         )
 
         sbe_set = createSet(**attributes)
         parent.addType(sbe_set)
-        for child_element in element.findall('choice'):
-            choice = self.parse_set_choice(
-                sbe_set=sbe_set,
-                element=child_element,
-            )
+        for child_element in element.findall("choice"):
+            choice = self.parse_set_choice(sbe_set=sbe_set, element=child_element)
             sbe_set.addChoice(choice)
 
     def parse_set_choice(self, sbe_set, element):
         """parse and return an enum validvalue"""
         attributes = self.parse_common_attributes(
-            element,
-            attributes=SET_CHOICE_ATTRIBUTES_LIST,
+            element, attributes=SET_CHOICE_ATTRIBUTES_LIST
         )
         value = element.text
         try:
@@ -369,94 +251,87 @@ class SBESpecParser:
                 f"invalid value for set {sbe_set.name} choice "
                 f"{attributes.get('name')}"
             ) from exc
-        choice = createChoice(
-            value=value,
-            **attributes
-        )
+
+        choice = createChoice(value=value, **attributes)
         return choice
 
     def parse_types_enum(self, parent: TypeCollection, element):
         """parse types/enum"""
         attributes = self.parse_common_attributes(
-            element,
-            attributes=ENUM_ATTRIBUTES_LIST,
+            element, attributes=ENUM_ATTRIBUTES_LIST
         )
 
         sbe_enum = createEnum(**attributes)
         parent.addType(sbe_enum)
-        for child_element in element.findall('validValue'):
+        for child_element in element.findall("validValue"):
             valid_value = self.parse_enum_valid_value(
-                sbe_enum=sbe_enum,
-                element=child_element,
+                sbe_enum=sbe_enum, element=child_element
             )
             sbe_enum.addValidValue(valid_value)
 
     def parse_enum_valid_value(self, sbe_enum, element):
         """parse and return an enum validvalue"""
         attributes = self.parse_common_attributes(
-            element,
-            attributes=ENUM_VALID_VALUES_ATTRIBUTES_LIST,
+            element, attributes=ENUM_VALID_VALUES_ATTRIBUTES_LIST
         )
         value = element.text
-        enum_valid_value = createValidValue(
-            value=value,
-            **attributes
-        )
+        enum_valid_value = createValidValue(value=value, **attributes)
         return enum_valid_value
 
-    def parse_common_attributes(
-            self,
-            element,
-            attributes):
+    def parse_common_attributes(self, element, attributes):
         """parse and return dict of common attributes"""
         result_attributes = {}
         for attribute in attributes:
             attrib_info = ALL_ATTRIBUTES_MAP[attribute]
-            if attrib_info.get('default', MISSING) is not MISSING:
-                default_value = attrib_info['default']
+            if attrib_info.get("default", MISSING) is not MISSING:
+                default_value = attrib_info["default"]
             else:
                 default_value = MISSING
             value = element.attrib.get(attribute, default_value)
-            if value is MISSING or value == '':
-                if attrib_info.get('use') == 'optional':
+            if value is MISSING or value == "":
+                if attrib_info.get("use") == "optional":
                     continue
+
                 else:
                     raise ValueError(
-                        f'element {element.tag} missing required '
-                        f'attribute {attribute}'
+                        f"element {element.tag} missing required "
+                        f"attribute {attribute}"
                     )
-            if attrib_info.get('type'):
+
+            if attrib_info.get("type"):
                 try:
-                    value = attrib_info['type'](value)
+                    value = attrib_info["type"](value)
                 except ValueError as exc:
                     raise ValueError(
-                        f'element {element.tag} invalid value '
-                        f'{repr(value)} for attribute {attribute}'
+                        f"element {element.tag} invalid value "
+                        f"{repr(value)} for attribute {attribute}"
                     ) from exc
 
-            if attrib_info.get('minimumValue'):
-                if value < attrib_info['minimumValue']:
+            if attrib_info.get("minimumValue"):
+                if value < attrib_info["minimumValue"]:
                     raise ValueError(
-                        f'element {element.tag} invalid value {repr(value)}'
-                        f' for attribute {attribute},'
-                        'less than allowed minimum '
+                        f"element {element.tag} invalid value {repr(value)}"
+                        f" for attribute {attribute},"
+                        "less than allowed minimum "
                         f"{repr(attrib_info['minimumValue'])}"
                     )
-            if attrib_info.get('pattern'):
-                if not attrib_info['pattern'].match(value):
+
+            if attrib_info.get("pattern"):
+                if not attrib_info["pattern"].match(value):
                     raise ValueError(
-                        f'element {element.tag} invalid value {repr(value)} '
-                        f'for attribute {attribute},'
+                        f"element {element.tag} invalid value {repr(value)} "
+                        f"for attribute {attribute},"
                         "does not match expected pattern "
                         f"{repr(attrib_info['pattern'])}"
                     )
-            if attrib_info.get('map'):
+
+            if attrib_info.get("map"):
                 try:
-                    value = attrib_info['map'][value]
+                    value = attrib_info["map"][value]
                 except (KeyError, IndexError) as exc:
                     raise ValueError(
-                        f'element {element.tag} invalid value {repr(value)} '
-                        f'for attribute {attribute}'
+                        f"element {element.tag} invalid value {repr(value)} "
+                        f"for attribute {attribute}"
                         f", must be one of {repr(attrib_info['map'].keys())}"
                     ) from exc
 
@@ -473,8 +348,8 @@ def parse_byteOrder(byteOrder):
     value = STRING_ENUM_MAP.get(byteOrder)
     if value is None:
         raise ValueError(
-            f'invalid byteOrder {repr(value)},'
-            'expected one of {SBE_STRING_ENUM_MAP.keys()}'
+            f"invalid byteOrder {repr(value)},"
+            "expected one of {SBE_STRING_ENUM_MAP.keys()}"
         )
 
     return value
@@ -483,7 +358,7 @@ def parse_byteOrder(byteOrder):
 def parse_version(version):
     """convert version to int"""
     if version is None:
-        raise ValueError('sbe:messageSchema/@version is required')
+        raise ValueError("sbe:messageSchema/@version is required")
 
     return int(version)
 

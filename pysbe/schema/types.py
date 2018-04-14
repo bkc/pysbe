@@ -1,29 +1,23 @@
 """types.py - schema for types type, composite, enum, etc"""
 import weakref
 from typing import Optional, Union
-from . constants import PRESENCE, TYPE_PRIMITIVE_TYPE
-from . exceptions import DuplicateName, DuplicateChoiceValue
+from .constants import PRESENCE, TYPE_PRIMITIVE_TYPE
+from .exceptions import DuplicateName, DuplicateChoiceValue
 
 
 class TypeCollection:
     """Holds map of types"""
+
     def __init__(self, *args, **kw):
         self.typesNameMap = {}
         self.typesList = []
         self.parentCollectionRef = None
 
-    def addType(
-        self,
-        sbeType: Union[
-            'Type',
-            'Composite',
-            'Enum'
-        ]
-    ) -> None:
+    def addType(self, sbeType: Union["Type", "Composite", "Enum"]) -> None:
         """add a new type"""
         if sbeType.name in self.typesNameMap:
             raise DuplicateName(
-                f'{sbeType.name}'' already registered in composite {self.name}'
+                f"{sbeType.name}" " already registered in composite {self.name}"
             )
 
         if isinstance(sbeType, TypeCollection):
@@ -52,32 +46,22 @@ class TypeCollection:
 
 
 class AsDictType:
+
     def as_dict(self):
         """for debugging, return dict represenation"""
         d = self.__dict__.copy()
-        d['__class__'] = self.__class__.__name__
-        if 'typesNameMap' in d:
-            d['typesNameMap'] = {
-                key: value.as_dict()
-                for key, value in d['typesNameMap'].items()
+        d["__class__"] = self.__class__.__name__
+        if "typesNameMap" in d:
+            d["typesNameMap"] = {
+                key: value.as_dict() for key, value in d["typesNameMap"].items()
             }
 
         for key, value in d.items():
-            if isinstance(value, list) and \
-                len(value) and \
-                hasattr(
-                    value[0],
-                    'as_dict'):
-                d[key] = [
-                    x.as_dict()
-                    for x in value
-                ]
+            if isinstance(value, list) and len(value) and hasattr(value[0], "as_dict"):
+                d[key] = [x.as_dict() for x in value]
             elif isinstance(value, dict):
                 d[key] = {
-                    ikey: ivalue.as_dict() if hasattr(
-                        ivalue,
-                        'as_dict'
-                    ) else ivalue
+                    ikey: ivalue.as_dict() if hasattr(ivalue, "as_dict") else ivalue
                     for ikey, ivalue in value.items()
                 }
 
@@ -90,22 +74,23 @@ class BaseType(AsDictType):
 
 class Type(BaseType):
     """A primitive Type"""
+
     def __init__(
         self,
         name: [str],
         primitiveType: [TYPE_PRIMITIVE_TYPE],
         presence: [PRESENCE],
-        description: Optional[str]=None,
-        nullValue: Optional[str]=None,
-        minValue: Optional[str]=None,
-        maxValue: Optional[str]=None,
-        length: int=1,
-        offset: Optional[int]=None,
-        semanticType: Optional[str]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None,
-        characterEncoding: Optional[str]=None,
-        valueRef: Optional[str]=None,
+        description: Optional[str] = None,
+        nullValue: Optional[str] = None,
+        minValue: Optional[str] = None,
+        maxValue: Optional[str] = None,
+        length: int = 1,
+        offset: Optional[int] = None,
+        semanticType: Optional[str] = None,
+        sinceVersion: Optional[int] = 0,
+        deprecated: Optional[int] = None,
+        characterEncoding: Optional[str] = None,
+        valueRef: Optional[str] = None,
     ) -> None:
         """initialize primitive type"""
         self.name = name
@@ -127,20 +112,21 @@ class Type(BaseType):
 
 
 def createType(
-        name: [str],
-        primitiveType: [TYPE_PRIMITIVE_TYPE],
-        presence: [PRESENCE],
-        description: Optional[str]=None,
-        nullValue: Optional[str]=None,
-        minValue: Optional[str]=None,
-        maxValue: Optional[str]=None,
-        length: int=1,
-        offset: Optional[int]=None,
-        semanticType: Optional[str]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None,
-        characterEncoding: Optional[str]=None,
-        valueRef: Optional[str]=None) -> Type:
+    name: [str],
+    primitiveType: [TYPE_PRIMITIVE_TYPE],
+    presence: [PRESENCE],
+    description: Optional[str] = None,
+    nullValue: Optional[str] = None,
+    minValue: Optional[str] = None,
+    maxValue: Optional[str] = None,
+    length: int = 1,
+    offset: Optional[int] = None,
+    semanticType: Optional[str] = None,
+    sinceVersion: Optional[int] = 0,
+    deprecated: Optional[int] = None,
+    characterEncoding: Optional[str] = None,
+    valueRef: Optional[str] = None,
+) -> Type:
     """create a new Type"""
     sbeType = Type(
         name=name,
@@ -168,11 +154,11 @@ class Composite(BaseType, TypeCollection):
     def __init__(
         self,
         name: [str],
-        description: Optional[str]=None,
-        offset: Optional[int]=None,
-        semanticType: Optional[str]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None
+        description: Optional[str] = None,
+        offset: Optional[int] = None,
+        semanticType: Optional[str] = None,
+        sinceVersion: Optional[int] = 0,
+        deprecated: Optional[int] = None,
     ) -> None:
         """initialize composite type"""
         super().__init__()
@@ -185,12 +171,13 @@ class Composite(BaseType, TypeCollection):
 
 
 def createComposite(
-        name: [str],
-        description: Optional[str]=None,
-        offset: Optional[int]=None,
-        semanticType: Optional[str]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None) -> Composite:
+    name: [str],
+    description: Optional[str] = None,
+    offset: Optional[int] = None,
+    semanticType: Optional[str] = None,
+    sinceVersion: Optional[int] = 0,
+    deprecated: Optional[int] = None,
+) -> Composite:
     """create a new Type"""
     composite = Composite(
         name=name,
@@ -211,9 +198,9 @@ class Ref(BaseType):
         self,
         name: [str],
         type: [str],
-        offset: Optional[int]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None,
+        offset: Optional[int] = None,
+        sinceVersion: Optional[int] = 0,
+        deprecated: Optional[int] = None,
     ) -> None:
         """initialize Ref type"""
         self.name = name
@@ -224,11 +211,11 @@ class Ref(BaseType):
 
 
 def createRef(
-        name: [str],
-        type: [str],
-        offset: Optional[int]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None,
+    name: [str],
+    type: [str],
+    offset: Optional[int] = None,
+    sinceVersion: Optional[int] = 0,
+    deprecated: Optional[int] = None,
 ) -> Ref:
     """create a new Type"""
     sbeRef = Ref(
@@ -248,11 +235,11 @@ class Set(BaseType):
     def __init__(
         self,
         name: [str],
-        description: Optional[str]=None,
-        encodingType: Optional[str]=None,
-        offset: Optional[int]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None,
+        description: Optional[str] = None,
+        encodingType: Optional[str] = None,
+        offset: Optional[int] = None,
+        sinceVersion: Optional[int] = 0,
+        deprecated: Optional[int] = None,
     ) -> None:
         """initialize Set type"""
         self.name = name
@@ -266,12 +253,12 @@ class Set(BaseType):
         self.choice_list = []
         self.choice_values = []
 
-    def addChoice(self, choice: 'Choice') -> None:
+    def addChoice(self, choice: "Choice") -> None:
         """add a choice to this Set"""
         if choice.name in self.choice_name_map:
             raise DuplicateName(
-                f'duplicate Choice name {repr(choice.name)} already'
-                f'defined in set {repr(self.name)}'
+                f"duplicate Choice name {repr(choice.name)} already"
+                f"defined in set {repr(self.name)}"
             )
 
         self.choice_name_map[choice.name] = choice
@@ -281,16 +268,17 @@ class Set(BaseType):
                 f"set {self.name} choice name {choice.name}"
                 f"value {repr(choice.value)} duplicates existing value"
             )
+
         self.choice_values.append(choice.value)
 
 
 def createSet(
-        name: [str],
-        description: Optional[str]=None,
-        encodingType: Optional[str]=None,
-        offset: Optional[int]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None,
+    name: [str],
+    description: Optional[str] = None,
+    encodingType: Optional[str] = None,
+    offset: Optional[int] = None,
+    sinceVersion: Optional[int] = 0,
+    deprecated: Optional[int] = None,
 ) -> Set:
     """create a new Set"""
     sbeSet = Set(
@@ -312,9 +300,9 @@ class Choice(BaseType):
         self,
         name: [str],
         value: [int],
-        description: Optional[str]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None,
+        description: Optional[str] = None,
+        sinceVersion: Optional[int] = 0,
+        deprecated: Optional[int] = None,
     ) -> None:
         """initialize Choice type"""
         self.name = name
@@ -326,11 +314,11 @@ class Choice(BaseType):
 
 
 def createChoice(
-        name: [str],
-        value: [str],
-        description: Optional[str]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None,
+    name: [str],
+    value: [str],
+    description: Optional[str] = None,
+    sinceVersion: Optional[int] = 0,
+    deprecated: Optional[int] = None,
 ) -> Choice:
     """create a new ValidValue"""
     choice = Choice(
@@ -350,12 +338,12 @@ class Enum(BaseType, TypeCollection):
     def __init__(
         self,
         name: [str],
-        encodingType: Optional[str]=None,
-        description: Optional[str]=None,
-        offset: Optional[int]=None,
-        semanticType: Optional[str]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None,
+        encodingType: Optional[str] = None,
+        description: Optional[str] = None,
+        offset: Optional[int] = None,
+        semanticType: Optional[str] = None,
+        sinceVersion: Optional[int] = 0,
+        deprecated: Optional[int] = None,
     ) -> None:
         """initialize primitive type"""
         super().__init__()
@@ -370,12 +358,12 @@ class Enum(BaseType, TypeCollection):
         self.valid_value_name_map = {}
         self.valid_value_list = []
 
-    def addValidValue(self, validValue: 'ValidValue') -> None:
+    def addValidValue(self, validValue: "ValidValue") -> None:
         """add a valid value element to this enum"""
         if validValue.name in self.valid_value_name_map:
             raise DuplicateName(
-                f'duplicate validValue name {repr(validValue.name)} already'
-                f'defined in enum {repr(self.name)}'
+                f"duplicate validValue name {repr(validValue.name)} already"
+                f"defined in enum {repr(self.name)}"
             )
 
         self.valid_value_name_map[validValue.name] = validValue
@@ -383,13 +371,13 @@ class Enum(BaseType, TypeCollection):
 
 
 def createEnum(
-        name: [str],
-        encodingType: Optional[str]=None,
-        description: Optional[str]=None,
-        offset: Optional[int]=None,
-        semanticType: Optional[str]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None,
+    name: [str],
+    encodingType: Optional[str] = None,
+    description: Optional[str] = None,
+    offset: Optional[int] = None,
+    semanticType: Optional[str] = None,
+    sinceVersion: Optional[int] = 0,
+    deprecated: Optional[int] = None,
 ) -> Enum:
     """create a new Type"""
     sbeEnum = Enum(
@@ -412,9 +400,9 @@ class ValidValue(BaseType):
         self,
         name: [str],
         value: [str],
-        description: Optional[str]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None,
+        description: Optional[str] = None,
+        sinceVersion: Optional[int] = 0,
+        deprecated: Optional[int] = None,
     ) -> None:
         """initialize validValue type"""
         self.name = name
@@ -425,11 +413,11 @@ class ValidValue(BaseType):
 
 
 def createValidValue(
-        name: [str],
-        value: [str],
-        description: Optional[str]=None,
-        sinceVersion: Optional[int]=0,
-        deprecated: Optional[int]=None,
+    name: [str],
+    value: [str],
+    description: Optional[str] = None,
+    sinceVersion: Optional[int] = 0,
+    deprecated: Optional[int] = None,
 ) -> ValidValue:
     """create a new ValidValue"""
     valid_value = ValidValue(
