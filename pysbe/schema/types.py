@@ -13,7 +13,7 @@ class TypeCollection:
         self.typesList = []
         self.parentCollectionRef = None
 
-    def addType(self, sbeType: Union["Type", "Composite", "Enum"]) -> None:
+    def addType(self, sbeType: Union["Type", "Composite", "Enum", "Ref", "Set"]) -> None:
         """add a new type"""
         if sbeType.name in self.typesNameMap:
             raise DuplicateName(
