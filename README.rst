@@ -2,6 +2,9 @@
 pysbe
 =====
 
+** THIS REPOSITORY HAS BEEN ARCHIVED AND IS NO LONGER ACTIVE **
+
+
 
 .. image:: https://img.shields.io/pypi/v/pysbe.svg
         :target: https://pypi.org/project/pysbe/
